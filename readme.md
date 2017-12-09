@@ -5,7 +5,7 @@
 1.对数几率回归
 原题在西瓜书P69页3.3
 
-![LogisticRe](/Img/LDA_Classify.png)
+![LogisticRe](/Img/Logistic_Regression.png)
 ____________________________________
 LDA线性模型
 
