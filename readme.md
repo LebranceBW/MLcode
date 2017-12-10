@@ -7,7 +7,13 @@
 
 ![LogisticRe](/Img/Logistic_Regression.png)
 ____________________________________
-LDA线性模型
+2.LDA线性分类器，效果不佳
 
 ![LDA](/Img/LDA_Classify.png)
 ___________________________________
+
+2.决策树
+---------
+1.简易决策树（没有剪枝，只有离散值）
+
+![simpleTree](/Img/DecisionTree_simple.png)
