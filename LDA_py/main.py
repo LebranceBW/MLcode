@@ -1,25 +1,25 @@
 #encoding:utf-8
 #线性分类器LDA
-from dataSet.watermelon_dataset import watermelon_posiexam_x as positive_x
-from dataSet.watermelon_dataset import watermelon_counterexample_x as counter_x
-from dataSet.watermelon_dataset import watermelon_y as y
+#正例为绿色点，正例均值为绿色方块，反例为蓝色点，反例均值为蓝色方块
+from dataSet.watermelon_3alpha import watermelon_posiexam_x as positive_x
+from dataSet.watermelon_3alpha import watermelon_counterexample_x as counter_x
+from dataSet.watermelon_3alpha import watermelon_y as y
 import numpy as np
 from functools import reduce
-from myModules.quickfunc import quick_fun
 import matplotlib.pyplot as plt
 
 mat_positive_x = np.matrixlib.matrix(positive_x)
 mat_counter_x = np.matrixlib.matrix(counter_x)
-def meanVector(vector):             #计算均值向量u
+def meanvetor(vector):             #计算均值向量u
     return np.mean(vector,0)
 
-def accumulate(vector):
+def summulate(vector):
     return reduce(lambda x,y: x+y,vector)
 
 def x_mul_xT(x):
     return x * x.T
 # def Sw():           #sw计算
-    # return lambda mat_positive_x,mat_counter_x: accumulate(map(lambda unit:x_mul_xT(unit - meanVector(mat_positive_x)),mat_positive_x)) + accumulate(map(lambda unit:x_mul_xT(unit - meanVector(mat_counter_x)),mat_counter_x))
+    # return lambda mat_positive_x,mat_counter_x: summulate(map(lambda unit:x_mul_xT(unit - meanvetor(mat_positive_x)),mat_positive_x)) + summulate(map(lambda unit:x_mul_xT(unit - meanvetor(mat_counter_x)),mat_counter_x))
 
 def Sw(f): #S
     def func(positive_x,counter_x):
@@ -28,7 +28,7 @@ def Sw(f): #S
 
 def unit(mean):
     def func(x):
-        return accumulate(map(lambda xrow: (xrow - mean(x)).T * (xrow - mean(x)),x))
+        return summulate(map(lambda xrow: (xrow - mean(x)).T * (xrow - mean(x)),x))
     return func
 
 def inverse_Sw(Sw):
@@ -36,19 +36,19 @@ def inverse_Sw(Sw):
         return Sw(positive_x,counter_x).I
     return func
 
-def oumiga(mean,inverse_Sw):
+def oumiga(mean,inverse_Sw):#w
     def func(positive_x,counter_x):
         return inverse_Sw(positive_x,counter_x)*(mean(positive_x)-mean(counter_x)).T
     return func
 
 def main():
-    w = oumiga(meanVector,inverse_Sw(Sw(unit(meanVector))))(mat_positive_x,mat_counter_x)
+    w = oumiga(meanvetor,inverse_Sw(Sw(unit(meanvetor))))(mat_positive_x,mat_counter_x)
     print("w = ",w)
     ax = plot_Init()
     
 
-    posMeanPoint = meanVector(mat_positive_x).getA()[0]
-    counterMeanPoint = meanVector(mat_counter_x).getA()[0]
+    posMeanPoint = meanvetor(mat_positive_x).getA()[0]
+    counterMeanPoint = meanvetor(mat_counter_x).getA()[0]
     slope = w.T.getA()[0]#直线向量
     pos_crosspoint = crosspoint(posMeanPoint,slope)
     counter_crosspoint = crosspoint(counterMeanPoint,slope)
@@ -66,9 +66,9 @@ def main():
 
     plt.show()
 
-def crosspoint(meanVector,slope):
+def crosspoint(meanvetor,slope):
     w1,w2 = slope[0],slope[1]
-    x0,y0= meanVector[0],meanVector[1]
+    x0,y0= meanvetor[0],meanvetor[1]
     commonFactor = (-w1*y0 + w2*x0) / (w1**2 + w2**2)
     return [w2 * commonFactor,-w1 * commonFactor]
 def plot_Init():

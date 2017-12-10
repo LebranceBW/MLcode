@@ -1,12 +1,11 @@
+#失败，因为有的输入不可被哈希，故无法作为字典的键
 from functools import wraps
 functionResultMap = {}
 def quick_fun(func):
     #装饰器，如果函数已经输入过一次就快速返回存储好的结果
     @wraps(func)
     def wrapper(*args,**kw):
-        temp = tuple()
-        for x in args:
-            temp = temp + tuple(x)
+        temp = args
         funcunit = functionResultMap.get(func.__name__)
         if not funcunit:
             functionResultMap[func.__name__] = {}

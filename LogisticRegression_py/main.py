@@ -1,7 +1,7 @@
 # encoding:utf-8
 # 参考西瓜书P69 🍉
-from dataSet.watermelon_dataset import watermelon_x as x
-from dataSet.watermelon_dataset import watermelon_y as y
+from dataSet.watermelon_3alpha import watermelon_x as x
+from dataSet.watermelon_3alpha import watermelon_y as y
 import numpy as np
 import matplotlib.pyplot as plt
 from functools import reduce
