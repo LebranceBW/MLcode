@@ -100,7 +100,7 @@ def accuracy(Tree,validate_set):
 def main():
     unit_Gain_test()
     a = TreeGenerate(array_D,array_Attri)
-    print(accuracy(a,wm_validationset))
-    print(a)
+    print("经过验证得到的准确率为%.2f" % accuracy(a,wm_validationset))
+    print("决策树为" + a.__str__())
 if __name__ == "__main__":
     main()

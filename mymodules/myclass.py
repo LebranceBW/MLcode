@@ -10,13 +10,18 @@ class Tree:
         self.__list = [None,None,None]
         self.__isLeaf = isLeaf
     def __getitem__(self,key):
-        key -= 1 #方便访问属性
+        key -= 1
         if self.__list == None:
             return None
         elif key > 3:
             return None
         return self.__list[key]
-
+    def __setitem__(self,key,value):
+        if key == 0:
+            return False
+        key -= 1
+        self.__list[key] = value
+        return True
     @property
     def childTree(self):
         return self.__list
@@ -27,11 +32,17 @@ class Tree:
     @property
     def isLeaf(self):
         return self.__isLeaf
+    @isLeaf.setter
+    def isLeaf(self,value):
+        self.__isLeaf = value
 
     @property
     def attri(self):
         return self.__attri
-    
+    @attri.setter
+    def attri(self,value):
+        self.__attri = value
+
     def __curstr__(self):
         l = '['
         for x in self.__list:
@@ -42,13 +53,7 @@ class Tree:
 
     def __str__(self):
         def travel(node,depth = 0,L=[]):
-            if(node == None):
-                return
-            elif(node.isLeaf):
-                try:
-                    L[depth].append('   '+node.__curstr__())
-                except IndexError:
-                    L.append(['   '+node.__curstr__()])
+            if node == None or node.isLeaf:
                 return
             else:
                 try:
@@ -59,7 +64,7 @@ class Tree:
                 travel(node.childTree[1],depth+1,L)
                 travel(node.childTree[2],depth+1,L)
         L = []
-        string = "决策树为：{\n "
+        string = "{\n "
         travel(self,0,L)
         for x in L:
             for y in x:

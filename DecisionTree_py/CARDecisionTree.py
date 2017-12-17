@@ -1,5 +1,7 @@
 #encoding:utf-8
 #🍉使用基尼指数判断的决策树
+#贪心是指尽可能使正确率更高，若是划分前后正确率相同则尽量划分
+#非贪心则是指正确率没有提升则不划分
 from dataSet.watermelon_2 import wm_trainningset as train_set
 from dataSet.watermelon_2 import wm_validationset as validate_set
 from dataSet.watermelon_2 import watermelon_attri
@@ -47,26 +49,75 @@ def Gini_attri(D,attri): #属性a的Gini系数
         return func
     return Gini_index(Gini,Dv)(D,attri)
     
-def TreeGenerate(D,A,weigh_fun):
+def rawTreeGenerate(D,A,weigh_fun):
     temp = rate_category(D,1)
-    if  temp == 1 or temp == 0:
+    if  temp == 1 or temp == 0 or A == []:
         return Tree(["坏瓜","好瓜"][int(temp)],True)
-    elif A == []:
-        return Tree(["坏瓜","好瓜"][int(temp + 0.5)],True)
     else:
         A = sorted(A,key=lambda x:weigh_fun(D,x))
         node = Tree(A[-1])
-        for i in [1,2,3]:
-            if A[-1] == "触感" and i == 3:
-                continue
+        def iterator_func(node,i = 1):#替代掉循环
+            if i == 4 or (A[-1] == "触感" and i == 3): 
+                return
             dv = Dv(D,A[-1],i)
             if dv == []:
-                node.childTree[i-1] = Tree(["坏瓜","好瓜"][int(temp + 0.5)],True)
+                node[i] = Tree(["坏瓜","好瓜"][int(temp + 0.5)],True)
             else:
-                node.childTree[i-1] = TreeGenerate(dv,A[:-1],weigh_fun)
+                node[i] = rawTreeGenerate(dv,A[:-1],weigh_fun)
+            iterator_func(node,i+1)
+
+        iterator_func(node)
         return node
 
-def accuracy(Tree,validate_set):
+def prePruneTree(D,A,weigh_fun,isgreedy=False,node=None,root=None,accuracy=0):
+    majority = lambda D:Tree([u"坏瓜",u"好瓜"][int(rate_category(D,1))],True) #返回集合中大多数元素所属类型的节点
+    def unfold(node,attri,i=1):
+        if i==4:
+            node.attri = attri
+            node.isLeaf = False
+            return
+        dv = Dv(D,attri,i)
+        if attri == u"触感" and i == 3:
+            node[i] = None
+        elif dv == []:
+            node[i] = majority(D)
+        else:
+            node[i] = majority(dv)
+        unfold(node,attri,i+1)
+    
+    if root==None and node==None:
+        node=root=Tree(u"好瓜") #初始化
+
+    temprate = rate_category(D,1)
+    if A == [] or temprate == 1 or temprate == 0:
+        return root
+
+    A = sorted(A,key=lambda x:weigh_fun(D,x))
+    temp = node #为node做一下备份
+    unfold(node,A[-1])
+    cur_accuracy = accuracy_fun(root,validate_set)
+
+    if isgreedy:
+        if cur_accuracy < accuracy:     #尽量划分使得准确率最高，但是正确做法是减少划分次数
+            node = temp
+            return root
+        else:
+            prePruneTree(Dv(D,A[-1],1),A[:-1],weigh_fun,isgreedy,node[1],root,cur_accuracy)
+            prePruneTree(Dv(D,A[-1],2),A[:-1],weigh_fun,isgreedy,node[2],root,cur_accuracy)
+            prePruneTree(Dv(D,A[-1],3),A[:-1],weigh_fun,isgreedy,node[3],root,cur_accuracy)
+    else:
+        if cur_accuracy <= accuracy:     #尽量划分使得枝桠最少
+            node = temp
+            return root
+        else:
+            prePruneTree(Dv(D,A[-1],1),A[:-1],weigh_fun,isgreedy,node[1],root,cur_accuracy)
+            prePruneTree(Dv(D,A[-1],2),A[:-1],weigh_fun,isgreedy,node[2],root,cur_accuracy)
+            prePruneTree(Dv(D,A[-1],3),A[:-1],weigh_fun,isgreedy,node[3],root,cur_accuracy)
+    return root
+     
+
+
+def accuracy_fun(Tree,validate_set):
     def travel(subtree,unit):
         if subtree.isLeaf:
             return subtree.attri
@@ -77,8 +128,14 @@ def accuracy(Tree,validate_set):
     return sum(map(compurefunc,validate_set)) / validate_set.__len__()
 def main():
     test_Giniattri(train_set,array_Attri)
-    a = TreeGenerate(train_set,array_Attri,Gini_attri)
-    print(a)
-    print(accuracy(a,validate_set))
+    a = rawTreeGenerate(train_set,array_Attri,Gini_attri)
+    b = prePruneTree(train_set,array_Attri,Gini_attri)
+    c = prePruneTree(train_set,array_Attri,Gini_attri,True)
+    print("未剪枝的决策树"+a.__str__())
+    print("非贪心预剪枝的决策树"+b.__str__())
+    print("贪心预剪枝的决策树"+c.__str__())
+    print("未剪枝的决策树正确率为：%.3f" % accuracy_fun(a,validate_set))
+    print("非贪心预剪枝的决策树正确率为：%.3f" % accuracy_fun(b,validate_set))
+    print("贪心预剪枝的决策树正确率为：%.3f" % accuracy_fun(c,validate_set))
 if __name__ == "__main__":
     main()
