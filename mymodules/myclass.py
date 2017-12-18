@@ -1,5 +1,5 @@
 #encoding:utf-8
-#决策树用的数据结构
+#决策树用的数据结构,支持下标访问
 class Tree:
     def __init__(self,attri,datalist,isLeaf = False):
         self.__attri = attri
