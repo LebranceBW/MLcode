@@ -10,46 +10,42 @@ from mymodules.myclass import Tree
 import numpy as np
 from copy import deepcopy
 from functools import reduce,partial
-array_Attri =[x for x in watermelon_attri][1 :-1]
-def rate_category(D,value): #计算正反例的概率
+attri_set =[x for x in watermelon_attri][1 :-1]
+
+def rate_category_func(D,value): #计算正反例的概率
     def func(D,value):#即Pk
-        if not D:
-            return 0
+        if not D:return 0
         L = list(np.array(D).T[watermelon_attri[u'好坏']])
         return L.count(value)/L.__len__()
-    if D == watermelon_D:
-        return [0,0.47058,0.52942,0][value]
-    else:
-        return func(D,value)  
+    if D == watermelon_D:return [0,0.47058,0.52942,0][value]
+    else:return func(D,value) 
 
-def test_Giniattri(D,array_Attri):
+def test_Giniattri(D,attri_set):#测试基尼指数计算是否错误
     ans = [None,0.35,0.44,0.40,0.40,0.35,0.50]
-    for attri in array_Attri:
-        temp = Gini_attri(D,attri)
-        if temp == ans[watermelon_attri[attri]]:
-            pass
+    for attri in attri_set:
+        temp = Gini_index(D,attri)
+        if temp == ans[watermelon_attri[attri]]:pass
         else:
             print("Failed: 基尼指数单元测试失败，%s的基尼指数%f计算错误，结果应该为%f" % (attri,temp,ans[watermelon_attri[attri]]))
             return False
         print("Passed: 基尼指数单元测试通过")
         return True
        
-
-def Dv(D,attri,value): #提取某一属性的数据集
+def filtrate_func(D,attri,value): #提取某一属性的数据集
     return list(filter(lambda unit:unit[watermelon_attri[attri]] == value,D))
 
-def Gini_attri(D,attri): #属性a的Gini系数
+def Gini_index(D,attri): #属性a的Gini系数,希望以后看这段代码的时候不会凉凉
     def Gini(pk): #基尼指数，反应了随机从样本中抽取两个样本其标记不同的概率
         return lambda D:1 - pk(D,2)**2 - pk(D,1)**2
 
-    def Gini_index(Gini,Dv): 
+    def Gini_part(Gini,filtrate_func): 
         def func(D,attri):
-            return  sum(map(lambda value:Dv(D,attri,value).__len__()*Gini(rate_category)(Dv(D,attri,value)),[1,2,3]))/ D.__len__()
+            return  sum(map(lambda value:filtrate_func(D,attri,value).__len__()*Gini(rate_category_func)(filtrate_func(D,attri,value)),[1,2,3]))/ D.__len__()
         return func
-    return Gini_index(Gini,Dv)(D,attri)
+    return Gini_part(Gini,filtrate_func)(D,attri)
     
-def rawTreeGenerate(D,A,weigh_fun):
-    temp = rate_category(D,1)
+def rawtree_generate(D,A,weigh_fun):
+    temp = rate_category_func(D,1)
     if  temp == 1 or temp == 0 or A == []:
         return Tree(["坏瓜","好瓜"][int(temp)],D,True)
     else:
@@ -58,36 +54,36 @@ def rawTreeGenerate(D,A,weigh_fun):
         def iterator_func(node,i = 1):#替代掉循环
             if i == 4 or (A[-1] == "触感" and i == 3): 
                 return
-            dv = Dv(D,A[-1],i)
-            if dv == []:
+            d_filtrated = filtrate_func(D,A[-1],i)
+            if d_filtrated == []:
                 node[i] = Tree(["坏瓜","好瓜"][int(temp + 0.5)],[],True)
             else:
-                node[i] = rawTreeGenerate(dv,A[:-1],weigh_fun)
+                node[i] = rawtree_generate(d_filtrated,A[:-1],weigh_fun)
             iterator_func(node,i+1)
 
         iterator_func(node)
         return node
 
-def prePruneTree(D,A,weigh_fun,isgreedy=False,node=None,root=None,accuracy=0):
-    majority = lambda D:Tree([u"坏瓜",u"好瓜"][int(rate_category(D,1))],D,True) #返回集合中大多数元素所属类型的节点
+def preprune_tree_generate(D,A,weigh_fun,isgreedy=False,node=None,root=None,accuracy=0):
+    majority = lambda D:Tree([u"坏瓜",u"好瓜"][int(rate_category_func(D,1))],D,True) #返回集合中大多数元素所属类型的节点
     def unfold(node,attri,i=1):
         if i==4:
             node.attri = attri
             node.isLeaf = False
             return
-        dv = Dv(D,attri,i)
+        d_filtrated = filtrate_func(D,attri,i)
         if attri == u"触感" and i == 3:
             node[i] = None
-        elif dv == []:
+        elif d_filtrated == []:
             node[i] = majority(D)
         else:
-            node[i] = majority(dv)
+            node[i] = majority(d_filtrated)
         unfold(node,attri,i+1)
     
     if root==None and node==None:
         node=root=Tree(u"好瓜",D) #初始化
 
-    temprate = rate_category(D,1)
+    temprate = rate_category_func(D,1)
     if A == [] or temprate == 1 or temprate == 0:
         return root
 
@@ -101,21 +97,21 @@ def prePruneTree(D,A,weigh_fun,isgreedy=False,node=None,root=None,accuracy=0):
             node = temp
             return root
         else:
-            prePruneTree(Dv(D,A[-1],1),A[:-1],weigh_fun,isgreedy,node[1],root,cur_accuracy)
-            prePruneTree(Dv(D,A[-1],2),A[:-1],weigh_fun,isgreedy,node[2],root,cur_accuracy)
-            prePruneTree(Dv(D,A[-1],3),A[:-1],weigh_fun,isgreedy,node[3],root,cur_accuracy)
+            preprune_tree_generate(filtrate_func(D,A[-1],1),A[:-1],weigh_fun,isgreedy,node[1],root,cur_accuracy)
+            preprune_tree_generate(filtrate_func(D,A[-1],2),A[:-1],weigh_fun,isgreedy,node[2],root,cur_accuracy)
+            preprune_tree_generate(filtrate_func(D,A[-1],3),A[:-1],weigh_fun,isgreedy,node[3],root,cur_accuracy)
     else:
         if cur_accuracy <= accuracy:     #尽量划分使得枝桠最少
             node = temp
             return root
         else:
-            prePruneTree(Dv(D,A[-1],1),A[:-1],weigh_fun,isgreedy,node[1],root,cur_accuracy)
-            prePruneTree(Dv(D,A[-1],2),A[:-1],weigh_fun,isgreedy,node[2],root,cur_accuracy)
-            prePruneTree(Dv(D,A[-1],3),A[:-1],weigh_fun,isgreedy,node[3],root,cur_accuracy)
+            preprune_tree_generate(filtrate_func(D,A[-1],1),A[:-1],weigh_fun,isgreedy,node[1],root,cur_accuracy)
+            preprune_tree_generate(filtrate_func(D,A[-1],2),A[:-1],weigh_fun,isgreedy,node[2],root,cur_accuracy)
+            preprune_tree_generate(filtrate_func(D,A[-1],3),A[:-1],weigh_fun,isgreedy,node[3],root,cur_accuracy)
     return root
      
 
-def postPruneTree(D,A,weigh_fun):
+def postprune_tree_generate(D,A,weigh_fun):
     def travel(node,nodeStack):#遍历
         if node == None or node.isLeaf:
             return
@@ -125,7 +121,7 @@ def postPruneTree(D,A,weigh_fun):
             travel(node[1],nodeStack)
             travel(node[2],nodeStack)
             return
-    majority_fun = lambda D:[u"坏瓜",u"好瓜"][int(rate_category(D,1))] #返回集合中大多数元素所属类型的节点
+    majority_fun = lambda D:[u"坏瓜",u"好瓜"][int(rate_category_func(D,1))] #返回集合中大多数元素所属类型的节点
     def prune(nodeStack,accuracy,root):
         node = nodeStack.pop() #备份弹出的节点
         if node == root:
@@ -140,8 +136,8 @@ def postPruneTree(D,A,weigh_fun):
             node.isLeaf,node.attri = False,backup #还原剪枝
         prune(nodeStack,accuracy,root)
 
-    # raw_tree = prePruneTree(D,A,weigh_fun,True)
-    raw_tree = rawTreeGenerate(D,A,Gini_attri)
+    # raw_tree = preprune_tree_generate(D,A,weigh_fun,True)
+    raw_tree = rawtree_generate(D,A,Gini_index)
     raw_accuracy = accuracy_fun(raw_tree,validate_set)
     nodeStack = list()
     travel(raw_tree,nodeStack)#节点栈，越深的节点在越上面
@@ -161,11 +157,11 @@ def accuracy_fun(Tree,validate_set):
     compurefunc = lambda unit:[u'错误',u'好瓜',u'坏瓜'].index(travel(Tree,unit)) == unit[watermelon_attri[u'好坏']]
     return sum(map(compurefunc,validate_set)) / validate_set.__len__()
 def main():
-    test_Giniattri(train_set,array_Attri)
-    a = rawTreeGenerate(train_set,array_Attri,Gini_attri)
-    b = prePruneTree(train_set,array_Attri,Gini_attri)
-    c = prePruneTree(train_set,array_Attri,Gini_attri,True)
-    d = postPruneTree(train_set,array_Attri,Gini_attri)
+    test_Giniattri(train_set,attri_set)
+    a = rawtree_generate(train_set,attri_set,Gini_index)
+    b = preprune_tree_generate(train_set,attri_set,Gini_index)
+    c = preprune_tree_generate(train_set,attri_set,Gini_index,True)
+    d = postprune_tree_generate(train_set,attri_set,Gini_index)
     print("未剪枝的决策树"+a.__str__())
     print("非贪心预剪枝的决策树"+b.__str__())
     print("贪心预剪枝的决策树"+c.__str__())
