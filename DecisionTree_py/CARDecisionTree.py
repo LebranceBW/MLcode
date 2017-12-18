@@ -8,6 +8,7 @@ from dataSet.watermelon_2 import watermelon_attri
 from dataSet.watermelon_2 import watermelon_D
 from mymodules.myclass import Tree
 import numpy as np
+from copy import deepcopy
 from functools import reduce,partial
 array_Attri =[x for x in watermelon_attri][1 :-1]
 def rate_category(D,value): #计算正反例的概率
@@ -37,8 +38,6 @@ def test_Giniattri(D,array_Attri):
 def Dv(D,attri,value): #提取某一属性的数据集
     return list(filter(lambda unit:unit[watermelon_attri[attri]] == value,D))
 
-
-
 def Gini_attri(D,attri): #属性a的Gini系数
     def Gini(pk): #基尼指数，反应了随机从样本中抽取两个样本其标记不同的概率
         return lambda D:1 - pk(D,2)**2 - pk(D,1)**2
@@ -52,16 +51,16 @@ def Gini_attri(D,attri): #属性a的Gini系数
 def rawTreeGenerate(D,A,weigh_fun):
     temp = rate_category(D,1)
     if  temp == 1 or temp == 0 or A == []:
-        return Tree(["坏瓜","好瓜"][int(temp)],True)
+        return Tree(["坏瓜","好瓜"][int(temp)],D,True)
     else:
         A = sorted(A,key=lambda x:weigh_fun(D,x))
-        node = Tree(A[-1])
+        node = Tree(A[-1],D)
         def iterator_func(node,i = 1):#替代掉循环
             if i == 4 or (A[-1] == "触感" and i == 3): 
                 return
             dv = Dv(D,A[-1],i)
             if dv == []:
-                node[i] = Tree(["坏瓜","好瓜"][int(temp + 0.5)],True)
+                node[i] = Tree(["坏瓜","好瓜"][int(temp + 0.5)],[],True)
             else:
                 node[i] = rawTreeGenerate(dv,A[:-1],weigh_fun)
             iterator_func(node,i+1)
@@ -70,7 +69,7 @@ def rawTreeGenerate(D,A,weigh_fun):
         return node
 
 def prePruneTree(D,A,weigh_fun,isgreedy=False,node=None,root=None,accuracy=0):
-    majority = lambda D:Tree([u"坏瓜",u"好瓜"][int(rate_category(D,1))],True) #返回集合中大多数元素所属类型的节点
+    majority = lambda D:Tree([u"坏瓜",u"好瓜"][int(rate_category(D,1))],D,True) #返回集合中大多数元素所属类型的节点
     def unfold(node,attri,i=1):
         if i==4:
             node.attri = attri
@@ -86,14 +85,14 @@ def prePruneTree(D,A,weigh_fun,isgreedy=False,node=None,root=None,accuracy=0):
         unfold(node,attri,i+1)
     
     if root==None and node==None:
-        node=root=Tree(u"好瓜") #初始化
+        node=root=Tree(u"好瓜",D) #初始化
 
     temprate = rate_category(D,1)
     if A == [] or temprate == 1 or temprate == 0:
         return root
 
     A = sorted(A,key=lambda x:weigh_fun(D,x))
-    temp = node #为node做一下备份
+    temp = deepcopy(node) #为node做一下备份
     unfold(node,A[-1])
     cur_accuracy = accuracy_fun(root,validate_set)
 
@@ -116,13 +115,48 @@ def prePruneTree(D,A,weigh_fun,isgreedy=False,node=None,root=None,accuracy=0):
     return root
      
 
+def postPruneTree(D,A,weigh_fun):
+    def travel(node,nodeStack):#遍历
+        if node == None or node.isLeaf:
+            return
+        else:
+            nodeStack.append(node)
+            travel(node[0],nodeStack)
+            travel(node[1],nodeStack)
+            travel(node[2],nodeStack)
+            return
+    majority_fun = lambda D:[u"坏瓜",u"好瓜"][int(rate_category(D,1))] #返回集合中大多数元素所属类型的节点
+    def prune(nodeStack,accuracy,root):
+        node = nodeStack.pop() #备份弹出的节点
+        if node == root:
+            return
+        backup = node.attri
+        node.isLeaf,node.attri = True,majority_fun(node.datalist)
+        accuracy2 = accuracy_fun(root,validate_set)
+        if accuracy < accuracy2: #如果剪枝后正确率上升
+            node.__list = [None,None,None] #确认剪枝
+            accuracy = accuracy2
+        else:
+            node.isLeaf,node.attri = False,backup #还原剪枝
+        prune(nodeStack,accuracy,root)
+
+    # raw_tree = prePruneTree(D,A,weigh_fun,True)
+    raw_tree = rawTreeGenerate(D,A,Gini_attri)
+    raw_accuracy = accuracy_fun(raw_tree,validate_set)
+    nodeStack = list()
+    travel(raw_tree,nodeStack)#节点栈，越深的节点在越上面
+    prune(nodeStack,accuracy_fun(raw_tree,validate_set),raw_tree)
+    return raw_tree
+    
+
+
 
 def accuracy_fun(Tree,validate_set):
     def travel(subtree,unit):
         if subtree.isLeaf:
             return subtree.attri
         else:
-            return travel(subtree[unit[watermelon_attri[subtree.attri]]],unit)
+            return travel(subtree[unit[watermelon_attri[subtree.attri]]],unit)#根据数据集中的值遍历
     
     compurefunc = lambda unit:[u'错误',u'好瓜',u'坏瓜'].index(travel(Tree,unit)) == unit[watermelon_attri[u'好坏']]
     return sum(map(compurefunc,validate_set)) / validate_set.__len__()
@@ -131,11 +165,14 @@ def main():
     a = rawTreeGenerate(train_set,array_Attri,Gini_attri)
     b = prePruneTree(train_set,array_Attri,Gini_attri)
     c = prePruneTree(train_set,array_Attri,Gini_attri,True)
+    d = postPruneTree(train_set,array_Attri,Gini_attri)
     print("未剪枝的决策树"+a.__str__())
     print("非贪心预剪枝的决策树"+b.__str__())
     print("贪心预剪枝的决策树"+c.__str__())
+    print("后剪枝的决策树"+d.__str__())
     print("未剪枝的决策树正确率为：%.3f" % accuracy_fun(a,validate_set))
     print("非贪心预剪枝的决策树正确率为：%.3f" % accuracy_fun(b,validate_set))
     print("贪心预剪枝的决策树正确率为：%.3f" % accuracy_fun(c,validate_set))
+    print("后剪枝的决策树正确率为：%.3f" % accuracy_fun(d,validate_set))
 if __name__ == "__main__":
     main()

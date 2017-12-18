@@ -1,13 +1,10 @@
 #encoding:utf-8
 #决策树用的数据结构
 class Tree:
-    def __init__(self):
-        self.__attri = ""
-        self.__list = [None,None,None]
-        self.__isLeaf = False
-    def __init__(self,attri,isLeaf = False):
+    def __init__(self,attri,datalist,isLeaf = False):
         self.__attri = attri
         self.__list = [None,None,None]
+        self.__datalist = datalist
         self.__isLeaf = isLeaf
     def __getitem__(self,key):
         key -= 1
@@ -25,23 +22,25 @@ class Tree:
     @property
     def childTree(self):
         return self.__list
-    @childTree.setter
-    def childTree(self,value):
-        self.__list = value
-
     @property
     def isLeaf(self):
         return self.__isLeaf
-    @isLeaf.setter
-    def isLeaf(self,value):
-        self.__isLeaf = value
-
     @property
     def attri(self):
         return self.__attri
+    @property
+    def datalist(self):
+        return self.__datalist
+
     @attri.setter
     def attri(self,value):
         self.__attri = value
+    @childTree.setter
+    def childTree(self,value):
+        self.__list = value
+    @isLeaf.setter
+    def isLeaf(self,value):
+        self.__isLeaf = value
 
     def __curstr__(self):
         l = '['
@@ -65,7 +64,7 @@ class Tree:
                 travel(node.childTree[2],depth+1,L)
         L = []
         string = "{\n "
-        travel(self,0,L)
+        travel(self, 0, L)
         for x in L:
             for y in x:
                 string = string + y + " "
