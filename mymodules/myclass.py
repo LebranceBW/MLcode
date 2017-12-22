@@ -1,6 +1,7 @@
 #encoding:utf-8
 #决策树用的数据结构,支持下标访问
 class Tree:
+    #包含节点名，子树地址，是否是叶子节点等
     def __init__(self,attri,datalist,isLeaf = False):
         self.__attri = attri
         self.__list = [None,None,None]
