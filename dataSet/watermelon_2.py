@@ -27,7 +27,7 @@
 
 #训练集1，2，3，6，7，10，14，15，16，17
 #验证集4，5，8，9，11，12，13
-watermelon_D = (
+wm_dataset = (
 [1,1,1,1,1,1,1,1],
 [2,2,1,2,1,1,1,1],
 [3,2,1,1,1,1,1,1],
@@ -46,7 +46,7 @@ watermelon_D = (
 [16,3,1,1,3,3,1,2],
 [17,1,1,2,2,2,1,2])
 
-watermelon_attri = {u"编号":0,u"色泽":1,u"根蒂":2,u"敲声":3,u"纹理":4,u"脐部":5,u"触感":6,u"好坏":7}
-
-wm_trainningset = [watermelon_D[x-1] for x in [1,2,3,6,7,10,14,15,16,17]]
-wm_validationset = [watermelon_D[x-1] for x in [4,5,8,9,11,12,13]]
+wm_attridict = {u"编号":0,u"色泽":1,u"根蒂":2,u"敲声":3,u"纹理":4,u"脐部":5,u"触感":6,u"好坏":7}
+wm_attriset = [x for x in wm_attridict][1 :-1]
+wm_trainningset = [wm_dataset[x-1] for x in [1,2,3,6,7,10,14,15,16,17]]
+wm_validationset = [wm_dataset[x-1] for x in [4,5,8,9,11,12,13]]
