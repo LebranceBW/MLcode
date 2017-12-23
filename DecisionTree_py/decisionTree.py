@@ -1,5 +1,8 @@
 #encoding:utf-8
 #🍉西瓜书上的决策书例题
+import sys
+from os import path
+sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 from dataSet.watermelon_2 import wm_attridict,wm_attriset,wm_dataset,wm_trainningset,wm_validationset,wm_dataset
 import numpy as np
 from copy import deepcopy

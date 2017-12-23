@@ -1,6 +1,9 @@
 #encoding:utf-8
 #线性分类器LDA
 #正例为绿色点，正例均值为绿色方块，反例为蓝色点，反例均值为蓝色方块
+import sys
+from os import path
+sys.path.append(path.dirname(path.dirname( path.dirname( path.abspath(__file__) ) ) ))
 from dataSet.watermelon_3alpha import watermelon_posiexam_x as positive_x
 from dataSet.watermelon_3alpha import watermelon_counterexample_x as counter_x
 from dataSet.watermelon_3alpha import watermelon_y as y
