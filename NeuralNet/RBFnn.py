@@ -88,21 +88,27 @@ def loss_func(neures, feature, label):
         封装后的误差函数
     '''
     return error_func(predict_func(radial_basis_func))(neures, feature, label)
-def neure_init(order, neure=[]):
+def neure_init(order, neure=None):
     '''
         初始化隐层,order 为隐层神经元个数
     '''
+    if neure is None:
+        neure = []
     if order == 0:
         return neure
     neure.append(Neure(1, np.abs(np.random.rand(1, 2)), 1, 4-order))
     return neure_init(order-1, neure=neure)
 
 def train(learning_rate, neures, trainning_set, trainning_count):
+    '''
+        训练函数
+    '''
     for count in range(trainning_count):
         for var in neures:
             var.beta = var.beta - learning_rate * beta_gradient_descent(var, neures, trainning_set[0], trainning_set[1])
             var.omega = var.omega - learning_rate * omega_gradient_descent(var, neures, trainning_set[0], trainning_set[1])
-        print("第%d次训练，误差为%s" % (count+1,loss_func(neures,trainning_set[0],trainning_set[1])))
+        print("第%d次训练，误差为%.4f" % (count+1,sum(loss_func(neures,trainning_set[0],trainning_set[1]))))
+
 def main():
     #0 数据集定义
     trainning_set = [
