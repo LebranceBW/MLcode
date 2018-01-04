@@ -25,10 +25,13 @@ def transform(l):
         a.append(i[0][1:])
         b.append([i[1]])
     return [a,b]
-
+def Subtract(A, B):  #A-B
+    return [x for x in A if x not in B]
+serials = [1,2,3,6,7,10,14,15,16,17]
 
 watermelon_attri = {u"编号":0,u"色泽":1,u"根蒂":2,u"敲声":3,u"纹理":4,u"脐部":5,u"触感":6,u"密度":7,u"含糖率":8}
 
 wm_dataset = transform(raw)
-wm_trainningset = transform([raw[x-1] for x in [1,2,3,6,7,10,14,15,16,17]])
-wm_validationset = transform([raw[x-1] for x in [4,5,8,9,11,12,13]])
+wm_trainningset = transform([raw[x-1] for x in serials])
+wm_validationset = transform([raw[x-1] for x in Subtract(range(18),serials)])
+
