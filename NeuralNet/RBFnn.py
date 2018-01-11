@@ -2,12 +2,12 @@
 '''
     P116 5.7 用RBF构建一个完成异或运算的神经网络
     约定：w为隐层与输出层的权值，β为隐层缩放系数，center为神经元中心
-    后面带_i,_j表示单元，不带则表示全体
+    后面带_i,_j表示单元，不带则表示全体🕸
 '''
 import numpy as np
 
 class Neure:
-    '''
+    '''🕸
         隐层神经元结构体，包括w, β, 与样本中心center
     '''
     def __init__(self, beta, center, omega, index):
@@ -94,7 +94,7 @@ def neure_init(order, neure=None):
     '''
     if neure is None:
         neure = []
-    if order == 0:
+    elif order == 0:
         return neure
     neure.append(Neure(1, np.abs(np.random.rand(1, 2)), 1, 4-order))
     return neure_init(order-1, neure=neure)
@@ -110,6 +110,9 @@ def train(learning_rate, neures, trainning_set, trainning_count):
         print("第%d次训练，误差为%.4f" % (count+1,sum(loss_func(neures,trainning_set[0],trainning_set[1]))))
 
 def main():
+    '''
+        主函数入口
+    '''
     #0 数据集定义
     trainning_set = [
         [[0, 0], [0, 1], [1, 0], [1, 1]], [[0], [1], [1], [0]]]
@@ -120,10 +123,10 @@ def main():
     #2 网络初始化
     neures = neure_init(order_hiddenlayer)
     #3 训练
-    train(learning_rate,neures,trainning_set,trainning_count)
+    train(learning_rate, neures,trainning_set, trainning_count)
     #4 显示输出
     for var in trainning_set[0]:
-        print("%d xor %d is %f" % (var[0],var[1],predict_func(radial_basis_func)(neures,var)))
+        print("%d xor %d is %f" % (var[0], var[1], predict_func(radial_basis_func)(neures, var)))
 
 
 
