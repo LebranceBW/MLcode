@@ -276,6 +276,9 @@ class svm_model(Structure):
 	def get_sv_coef(self):
 		return [tuple(self.sv_coef[j][i] for j in xrange(self.nr_class - 1))
 				for i in xrange(self.l)]
+	
+	def get_sv_rho(self):
+		return -self.rho[0]
 
 	def get_SV(self):
 		result = []

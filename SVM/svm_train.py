@@ -4,44 +4,55 @@
 '''
 import os
 import sys
-from os import path
-sys.path.append( path.dirname(  path.dirname(path.abspath(__file__) ) )) 
-from libsvm import svmutil,svm
-from dataSet.watermelon_3alpha import *
+import itertools
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from libsvm import svmutil
+from dataSet.watermelon_3alpha import watermelon_counterexample_x, watermelon_posiexam_x
 import matplotlib.pyplot as plt
+import numpy as np
 
-def plot_Init():
-    ax = plt.subplots()[1]
-    fig2 = plt.gcf()
-    fig2.canvas.set_window_title('Liner SVM')
-    plt.title(u'Liner SVM')
+DATA_PATH = r".\dataSet\watermelon3.0alpha.libsvm"
+def plot_init():
+    '''
+    初始化matplot
+    '''
+    plt.subplot(211)
+    plt.figure(1)
+    plt.title(u'Liner SVM(Top),Gaussian SVM(Bottom)')
+    plt.ylabel(u"Sugar Rate")
+    plt.xlim(0, 1)
+    plt.ylim(-0.2, 0.5)
+    plt.subplot(212)
     plt.xlabel(u"Density")
     plt.ylabel(u"Sugar Rate")
     plt.xlim(0, 1)
-    plt.ylim(-0.2,0.5)
-    return ax
+    plt.ylim(-0.2, 0.5)
 
 def main():
     '''
         主函数
     '''
-    dataPath = r".\dataSet\watermelon3.0alpha.libsvm"
-    assert os.path.exists(dataPath), r"数据集不存在"
-    y, x = svmutil.svm_read_problem(dataPath)
-    model = svmutil.svm_train(y, x, '-t 0')
-    wm_sv,wm_coef = model.get_SV(),model.get_sv_coef()
-    omega = [0,0]
-    for var in wm_sv:
-        omega[0] += var[1]
-        omega[1] += var[2]
-    bias = 1 - wm_sv[0][1] * omega[0] - wm_sv[0][2] * omega[1]
+    assert os.path.exists(DATA_PATH), r"数据集不存在"
+    y, x = svmutil.svm_read_problem(DATA_PATH)
+    liner_model = svmutil.svm_train(y, x, '-s 0 -t 0 -c 100')
+    
+    wm_sv, wm_coef = liner_model.get_SV(), liner_model.get_sv_coef()
+    omega = [0, 0]
+    for sv, coef in itertools.zip_longest(wm_sv, wm_coef):
+        omega[0] += sv[1] * coef[0] 
+        omega[1] += sv[2] * coef[0] 
+    bias = liner_model.get_sv_rho()
+    plot_init()
+    plt.subplot(211)
+    pose_points, counter_points = zip(*watermelon_posiexam_x), zip(*watermelon_counterexample_x)
+    plt.plot(next(pose_points), next(pose_points),'go')
+    plt.plot(next(counter_points), next(counter_points), 'bo')#样本点
+    plt.plot([-bias/omega[0],(omega[1]+bias)/(-omega[0])],[0,1])
+    plt.subplot(212)
+    pose_points, counter_points = zip(*watermelon_posiexam_x), zip(*watermelon_counterexample_x)
+    plt.plot(next(pose_points), next(pose_points),'go')
+    plt.plot(next(counter_points), next(counter_points), 'bo')#样本点
 
-    ax = plot_Init()
-    for item in watermelon_posiexam_x:
-        ax.plot(item[0], item[1], 'go')
-    for item in watermelon_counterexample_x:
-        ax.plot(item[0], item[1], 'bo')#样本点
-    ax.plot([0,-bias/omega[0]],[-bias/omega[1],0])
     plt.show()
 if __name__ == "__main__":
     main()
