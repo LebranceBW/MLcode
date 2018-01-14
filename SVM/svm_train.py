@@ -22,51 +22,57 @@ def plot_init():
     ax1.set_xlim(0, 1)
     ax1.set_ylim(0, 0.7)
     pose_points, counter_points = zip(*watermelon_posiexam_x), zip(*watermelon_counterexample_x)
-    ax1.plot(next(pose_points), next(pose_points),'go')
+    ax1.plot(next(pose_points), next(pose_points), 'go')
     ax1.plot(next(counter_points), next(counter_points), 'bo')#样本点
     ax2.set_xlabel(u"Density")
     ax2.set_ylabel(u"Sugar Rate")
     ax2.set_xlim(0, 1)
     ax2.set_ylim(0, 0.7)
     pose_points, counter_points = zip(*watermelon_posiexam_x), zip(*watermelon_counterexample_x)
-    ax2.plot(next(pose_points), next(pose_points),'go')
+    ax2.plot(next(pose_points), next(pose_points), 'go')
     ax2.plot(next(counter_points), next(counter_points), 'bo')#样本点
     return ax1, ax2
 
-def decision_gaussian(sv, coef, gamma, x, bias):
-    unitfunc = lambda coefunit, sv: coefunit[0] * np.exp(-gamma* np.sum(np.square(np.array(sv) - np.array(x))))
-    return sum(map(unitfunc, coef, sv)) + bias
+def decision_gaussian(svs, coef, gamma, feature_vector, bias):
+    '''
+        根据高斯函数的参数计算结果
+    '''
+    unitfunc = lambda coefunit, sv: coefunit[0] * np.exp(-gamma* np.sum(np.square(np.array(svs) - np.array(feature_vector))))
+    return sum(map(unitfunc, coef, svs)) + bias
 def main():
     '''
         主函数
     '''
     # 载入数据集
     assert os.path.exists(DATA_PATH), r"数据集不存在"
-    y, x = svmutil.svm_read_problem(DATA_PATH)
+    labels, feature_spaces = svmutil.svm_read_problem(DATA_PATH)
     # 线性核SVM
-    liner_model = svmutil.svm_train(y, x, '-s 0 -t 0 -c 100')
+    liner_model = svmutil.svm_train(labels, feature_spaces, '-s 0 -t 0 -c 100')
     wm_sv, wm_coef = liner_model.get_SV(), liner_model.get_sv_coef()
-    omega = [0, 0]
+    liner_omega = [0, 0]
     for sv, coef in itertools.zip_longest(wm_sv, wm_coef):
-        omega[0] += sv[1] * coef[0] 
-        omega[1] += sv[2] * coef[0] 
-    bias = liner_model.get_sv_rho()
-    ax1, ax2=plot_init()
-    ax1.plot([-bias/omega[0],(omega[1]+bias)/(-omega[0])],[0,1])
+        liner_omega[0] += sv[1] * coef[0]
+        liner_omega[1] += sv[2] * coef[0]
+    liner_bias = liner_model.get_sv_rho()
+    ax1, ax2 = plot_init()
+    ax1.plot([-liner_bias/liner_omega[0], (liner_omega[1]+liner_bias)/(-liner_omega[0])], [0, 1])
 
     # 高斯核SVM
-    gaussian_model = svmutil.svm_train(y, x, '-s 0 -t 2 -c 1000')
+    gaussian_model = svmutil.svm_train(labels, feature_spaces, '-s 0 -t 2 -c 1000')
     wm_sv, wm_coef = gaussian_model.get_SV(), gaussian_model.get_sv_coef()
-    sv = [[x[1], x[2]] for x in wm_sv]
-    bias = gaussian_model.get_sv_rho()
-    gamma = 0.5 #查看libsvm中，默认的γ为类别的倒数
-    zeropoints = [[],[]]
-    for x1 in [0.002*x for x in range(500)]:
-        for x2 in [0.007*x for x in range(100)]:
-            if np.abs(decision_gaussian(sv, wm_coef, gamma, [x1, x2], bias)) < 0.05:
-                zeropoints[0].append(x1)
-                zeropoints[1].append(x2)
+    gaussian_svs = [[feature_spaces[1], feature_spaces[2]] for feature_spaces in wm_sv]
+    gaussian_bias = gaussian_model.get_sv_rho()
+    gaussian_gamma = 0.5 #查看libsvm中，默认的γ为类别的倒数
+    zeropoints = [[], []]
+    for density in [0.002*feature_spaces for feature_spaces in range(500)]:
+        for sugar_rate in [0.007*feature_spaces for feature_spaces in range(100)]:
+            if np.abs(decision_gaussian(gaussian_svs, wm_coef, gaussian_gamma, [density, sugar_rate], gaussian_bias)) < 0.05:
+                zeropoints[0].append(density)
+                zeropoints[1].append(sugar_rate)
     ax2.plot(zeropoints[0], zeropoints[1], '.r')
+
+    svmutil.svm_save_model(r".\model\liner_model.libsvm", liner_model)
+    svmutil.svm_save_model(r".\model\gaussian_model.libsvm", gaussian_model)
     plt.show()
 if __name__ == "__main__":
     main()
