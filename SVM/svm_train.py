@@ -5,13 +5,14 @@
 import os
 import sys
 import itertools
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+basedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(basedir)
 from libsvm import svmutil
 from dataSet.watermelon_3alpha import watermelon_counterexample_x, watermelon_posiexam_x
 import matplotlib.pyplot as plt
 import numpy as np
 
-DATA_PATH = r".\dataSet\watermelon3.0alpha.libsvm"
+DATA_PATH = basedir + r"\dataSet\watermelon3.0alpha.libsvm"
 def plot_init():
     '''
     初始化matplot
@@ -39,6 +40,10 @@ def decision_gaussian(svs, coef, gamma, feature_vector, bias):
     '''
     unitfunc = lambda coefunit, sv: coefunit[0] * np.exp(-gamma* np.sum(np.square(np.array(sv) - np.array(feature_vector))))
     return sum(map(unitfunc, coef, svs)) + bias
+def progress_bar(progress_var):
+    print("\r%s %.2f%%" % ("#"*int(progress_var//5), progress_var),end="")
+    if progress_var == 100:
+        print("\nfinished")
 def main():
     '''
         主函数
@@ -47,7 +52,7 @@ def main():
     assert os.path.exists(DATA_PATH), r"数据集不存在"
     labels, feature_spaces = svmutil.svm_read_problem(DATA_PATH)
     # 线性核SVM
-    liner_model = svmutil.svm_train(labels, feature_spaces, '-s 0 -t 0 -c 100')
+    liner_model = svmutil.svm_train(labels, feature_spaces, '-h 0 -t 0 -c 100 -q')
     wm_sv, wm_coef = liner_model.get_SV(), liner_model.get_sv_coef()
     liner_omega = [0, 0]
     for sv, coef in itertools.zip_longest(wm_sv, wm_coef):
@@ -58,7 +63,7 @@ def main():
     ax1.plot([-liner_bias/liner_omega[0], (liner_omega[1]+liner_bias)/(-liner_omega[0])], [0, 1])
 
     # 高斯核SVM
-    gaussian_model = svmutil.svm_train(labels, feature_spaces, '-s 0 -t 2 -c 1000')
+    gaussian_model = svmutil.svm_train(labels, feature_spaces, '-h 0 -t 2 -c 1000 -q')
     wm_sv, wm_coef = gaussian_model.get_SV(), gaussian_model.get_sv_coef()
     gaussian_svs = [[feature_spaces[1], feature_spaces[2]] for feature_spaces in wm_sv]
     gaussian_bias = gaussian_model.get_sv_rho()
@@ -69,10 +74,10 @@ def main():
             if np.abs(decision_gaussian(gaussian_svs, wm_coef, gaussian_gamma, [density, sugar_rate], gaussian_bias)) < 0.05:
                 zeropoints[0].append(density)
                 zeropoints[1].append(sugar_rate)
+        progress_bar(100*density)      
+    progress_bar(100)
     ax2.plot(zeropoints[0], zeropoints[1], '.r')
 
-    svmutil.svm_save_model(r".\model\liner_model.libsvm", liner_model)
-    svmutil.svm_save_model(r".\model\gaussian_model.libsvm", gaussian_model)
     plt.show()
 if __name__ == "__main__":
     main()
