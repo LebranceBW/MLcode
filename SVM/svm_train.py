@@ -37,7 +37,7 @@ def decision_gaussian(svs, coef, gamma, feature_vector, bias):
     '''
         根据高斯函数的参数计算结果
     '''
-    unitfunc = lambda coefunit, sv: coefunit[0] * np.exp(-gamma* np.sum(np.square(np.array(svs) - np.array(feature_vector))))
+    unitfunc = lambda coefunit, sv: coefunit[0] * np.exp(-gamma* np.sum(np.square(np.array(sv) - np.array(feature_vector))))
     return sum(map(unitfunc, coef, svs)) + bias
 def main():
     '''
