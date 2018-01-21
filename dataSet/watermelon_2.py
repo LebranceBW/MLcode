@@ -45,7 +45,7 @@ def wm_picker(dataset, **kw):
             if attri == 'label':
                 return vector[1] == kw[attri]
             else:
-                return vector[0][watermelon_attri[attri]] in kw[attri]
+                return vector[0][wm_attridict[attri]] in kw[attri]
         return reduce(lambda x, y:x and y,map(func, kw))
     
     return tuple(zip(*filter(decision_func, zip(*dataset))))
@@ -57,7 +57,7 @@ def wm_picker(dataset, **kw):
     #     else:
     #         templist = list(filter(lambda vector:vector[0][watermelon_attri[attri]] in kw[attri], templist))
     # return list(func(dataset, iter(kw)))
-watermelon_attri = {u"编号":0, u"色泽":1, u"根蒂":2, u"敲声":3, u"纹理":4, u"脐部":5, u"触感":6}
+wm_attridict = {u"编号":0, u"色泽":1, u"根蒂":2, u"敲声":3, u"纹理":4, u"脐部":5, u"触感":6}
 
 wm_dataset = list(zip(*raw))
 wm_trainningset = wm_picker(wm_dataset, 编号 = serials)

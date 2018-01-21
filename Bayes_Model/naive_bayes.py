@@ -6,7 +6,7 @@
 import sys
 from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-from dataSet.watermelon_2 import wm_trainningset, wm_validationset, wm_picker, wm_counter, watermelon_attri
+from dataSet.watermelon_2 import wm_trainningset, wm_validationset, wm_picker, wm_counter, wm_attridict
 import numpy as np
 
 
@@ -23,7 +23,7 @@ def decision_table_generate(dataset):
     probaility_table = [[], []]
     positive_dataset = wm_picker(dataset, label=1)
     negative_dataset = wm_picker(dataset, label=0)
-    for var in watermelon_attri:
+    for var in wm_attridict:
         if var == u'编号':
             probaility_table[0].append([])
             probaility_table[1].append([])

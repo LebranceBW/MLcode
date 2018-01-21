@@ -3,12 +3,12 @@
 import sys
 from os import path
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-from dataSet.watermelon_2 import wm_attridict,wm_attriset,wm_dataset,wm_trainningset,wm_validationset,wm_dataset
+from dataSet.watermelon_2 import wm_attridict,wm_dataset,wm_trainningset,wm_validationset,wm_dataset
 import numpy as np
 from copy import deepcopy
 from functools import reduce,partial
 from mymodules.myclass import Tree
-
+wm_attriset = [x for x in wm_attridict]
 def rate_category_func(D,value): #计算正反例的概率
     def func(D,value):#即Pk
         if not D:return 0
