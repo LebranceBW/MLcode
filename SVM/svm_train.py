@@ -41,7 +41,10 @@ def decision_gaussian(svs, coef, gamma, feature_vector, bias):
     unitfunc = lambda coefunit, sv: coefunit[0] * np.exp(-gamma* np.sum(np.square(np.array(sv) - np.array(feature_vector))))
     return sum(map(unitfunc, coef, svs)) + bias
 def progress_bar(progress_var):
-    print("\r%s %.2f%%" % ("#"*int(progress_var//5), progress_var),end="")
+    '''
+        进度条
+    '''
+    print("\r%s %.2f%%" % ("#"*int(progress_var//4), progress_var),end="")
     if progress_var == 100:
         print("\nfinished")
 def main():
@@ -74,7 +77,7 @@ def main():
             if np.abs(decision_gaussian(gaussian_svs, wm_coef, gaussian_gamma, [density, sugar_rate], gaussian_bias)) < 0.05:
                 zeropoints[0].append(density)
                 zeropoints[1].append(sugar_rate)
-        progress_bar(100*density)      
+        progress_bar(100*density)     
     progress_bar(100)
     ax2.plot(zeropoints[0], zeropoints[1], '.r')
 
