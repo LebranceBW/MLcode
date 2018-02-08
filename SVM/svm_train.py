@@ -12,7 +12,7 @@ from dataSet.watermelon_3alpha import watermelon_counterexample_x, watermelon_po
 import matplotlib.pyplot as plt
 import numpy as np
 
-DATA_PATH = basedir + r"\dataSet\watermelon3.0alpha.libsvm"
+DATA_PATH = basedir + r"/dataSet/watermelon3.0alpha.libsvm"
 def plot_init():
     '''
     初始化matplot

@@ -8,9 +8,13 @@ import time
 from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from dataSet.watermelon_3 import wm_trainningset, wm_validationset
+from itertools import compress
 
 LEARNING_RATE = 0.05
 HIDDEN_LAYER_ORDER = 8
+#修改标签
+wm_trainningset[1] = [[i] for i in wm_trainningset[1]]
+wm_validationset[1] = [[1] for i in wm_validationset[1]]
 
 
 def addlayer(prelayer, inputshape, outputshape, activate_func=None, name="layer"):
@@ -66,13 +70,5 @@ def main():
             logfile.writelines(u"  学习率为{learningrate}, 隐含层维度为{order}, 最终测试集误差为{loss:.5f}, 训练了{count}次, 正确率为:{accu:.5f}\n"\
             .format(learningrate=LEARNING_RATE, order=HIDDEN_LAYER_ORDER, loss=minval, count=count, accu=accuracy))
 
-        #提示是否需要保存模型
-        modelsaved = input("Do you want to save the model?(y/n)")
-        if modelsaved == 'y' or modelsaved == 'Y':
-            saver = tf.train.Saver()
-            saver.save(sess, "accuracy-{accu}".format(accu=accuracy))
-            print("model saved in accuracy-{accu}".format(accu=accuracy))
-        else:
-            print("model do not save")
 if __name__ == '__main__':
     main()
