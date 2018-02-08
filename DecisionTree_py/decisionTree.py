@@ -3,48 +3,68 @@
 import sys
 from os import path
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-from dataSet.watermelon_2 import wm_attridict,wm_dataset,wm_trainningset,wm_validationset,wm_dataset
+from dataSet.watermelon_2 import wm_attridict, wm_dataset, wm_trainningset, wm_validationset,wm_dataset, wm_picker, wm_counter
 import numpy as np
 from copy import deepcopy
-from functools import reduce,partial
+from functools import reduce, partial
 from mymodules.myclass import Tree
-wm_attriset = [x for x in wm_attridict]
-def rate_category_func(D,value): #计算正反例的概率
-    def func(D,value):#即Pk
-        if not D:return 0
-        L = list(np.array(D).T[wm_attridict[u'好坏']])
-        return L.count(value)/L.__len__()
-    if D == wm_dataset:return [0,0.47058,0.52942,0][value]
-    else:return func(D,value) 
 
-def filtrate_func(D,attri,value): #提取某一属性的数据集
-    return list(filter(lambda unit:unit[wm_attridict[attri]] == value,D))
+wm_attriset = [x for x in wm_attridict if x != '编号']
+def rate_category_func(dataset, label):
+    '''
+        计算正例和反例的频率
+    '''
+    def func(dataset, label):#即Pk
+        tempdataset = wm_picker(dataset, label=label)
+        if not dataset:
+            return 0
+        return wm_counter(tempdataset) / wm_counter(dataset)
+    if dataset == wm_dataset:return [0.47058,0.52942][int(label)]
+    else:return func(dataset, label) 
+
+def filtrate_func(dataset, attri, value): #提取某一属性的数据集
+    '''
+            提取某一属性的数据集
+    '''
+    return wm_picker(dataset, **{attri:[value]})
 
 def infomation_gain(D,attri):
-    #组合起来的信息增益
-
-    def Ent(Pk):#信息熵
-        def func(D):    
-            def unit(i):
-                temp = Pk(D,i)
-                if temp != 0:
-                    return temp * np.log2(temp).sum()
-                else:
+    '''
+        组合起来的信息增益
+    '''
+    def Ent(Pk):
+        '''
+        单一属性的信息熵
+        '''
+        def func(dataset):    
+            def logarithm_func(result):
+                '''
+                    pk * log(pk) pk为0时需要定义为0 
+                '''
+                if result == 0:
                     return 0
-            return -(unit(2)+unit(1)+unit(3))
+                else:
+                    return result * np.log2(result).sum()
+            return -(logarithm_func(Pk(dataset, 0.0))+logarithm_func(Pk(dataset, 1.0)))
         return func
 
-    def sum_unit(Ent,Dv): #求和单元
+    def sum_unit(Ent,Dv): 
+        '''
+        求和单元
+        '''
+        def func(dataset, attri):
+            return lambda value:wm_counter(Dv(dataset, attri, value)) * Ent(Dv(dataset, attri, value))
+        return func
+
+    def Gain(Ent,filtrate_func): 
+        '''
+        信息增益
+        '''
         def func(D,attri):
-            return lambda value:Dv(D,attri,value).__len__() * Ent(Dv(D,attri,value))
+            return Ent(D) - sum(map(sum_unit(Ent,filtrate_func)(D,attri),[1, 2, 3]))/wm_counter(D)
         return func
 
-    def Gain(Ent,filtrate_func): #信息增益
-        def func(D,attri):
-            return Ent(D) - sum(map(sum_unit(Ent,filtrate_func)(D,attri),[1,2,3]))/list(D).__len__()
-        return func
-
-    return Gain(Ent(rate_category_func),filtrate_func)(D,attri)
+    return Gain(Ent(rate_category_func), filtrate_func)(D, attri)
 
 def test_infomation_gain(wm_dataset,wm_attriset):
     ans = [None,0.109,0.143,0.141,0.381,0.289,0.006]
@@ -61,6 +81,8 @@ def test_infomation_gain(wm_dataset,wm_attriset):
 def test_Giniattri(D,wm_attriset):#测试基尼指数计算是否错误
     ans = [None,0.35,0.44,0.40,0.40,0.35,0.50]
     for attri in wm_attriset:
+        if attri in [u"好坏", u'编号']:
+            continue
         temp = Gini_index(D,attri)
         if abs(temp-ans[wm_attridict[attri]])<0.01:pass
         else:
@@ -69,13 +91,19 @@ def test_Giniattri(D,wm_attriset):#测试基尼指数计算是否错误
     print("Passed: 基尼指数单元测试通过")
     return True
 
-def Gini_index(D,attri): #属性a的Gini系数,希望以后看这段代码的时候不会凉凉
-    def Gini(pk): #基尼指数，反应了随机从样本中抽取两个样本其标记不同的概率
-        return lambda D:1 - pk(D,2)**2 - pk(D,1)**2
+def Gini_index(D,attri): 
+    '''
+        属性a的Gini系数,希望以后看这段代码的时候不会凉凉
+    '''
+    def Gini(pk):
+        '''
+            基尼指数，反应了随机从样本中抽取两个样本其标记不同的概率
+        '''
+        return lambda D:1 - pk(D, 1.0)**2 - pk(D, 0.0)**2
 
     def Gini_part(Gini,filtrate_func): 
         def func(D,attri):
-            return  sum(map(lambda value:filtrate_func(D,attri,value).__len__()*Gini(rate_category_func)(filtrate_func(D,attri,value)),[1,2,3]))/ D.__len__()
+            return  sum(map(lambda value:wm_counter(filtrate_func(D,attri,value))*Gini(rate_category_func)(filtrate_func(D,attri,value)),[1.0, 2.0, 3.0]))/ wm_counter(D)
         return func
     return Gini_part(Gini,filtrate_func)(D,attri)
 
@@ -187,10 +215,10 @@ def accuracy_fun(Tree,wm_validationset):
         if subtree.isLeaf:
             return subtree.attri
         else:
-            return travel(subtree[unit[wm_attridict[subtree.attri]]],unit)#根据数据集中的值遍历
+            return travel(subtree[int(unit[wm_attridict[subtree.attri]])],unit)#根据数据集中的值遍历
     
-    compurefunc = lambda unit:[u'错误',u'好瓜',u'坏瓜'].index(travel(Tree,unit)) == unit[wm_attridict[u'好坏']]
-    return sum(map(compurefunc,wm_validationset)) / wm_validationset.__len__()
+    compurefunc = lambda unit1, label:[u'坏瓜', u'好瓜', u'错误'].index(travel(Tree,unit1)) == label
+    return sum(map(compurefunc, *wm_validationset)) / wm_counter(wm_validationset)
 
 def main():
     test_Giniattri(wm_trainningset,wm_attriset)

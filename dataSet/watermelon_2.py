@@ -45,7 +45,10 @@ def wm_picker(dataset, **kw):
             if attri == 'label':
                 return vector[1] == kw[attri]
             else:
-                return vector[0][wm_attridict[attri]] in kw[attri]
+                if attri in wm_attridict:
+                    return vector[0][wm_attridict[attri]] in kw[attri]
+                else:
+                    raise RuntimeError("attribute is not in the dict！")
         return reduce(lambda x, y:x and y,map(func, kw))
     
     return tuple(zip(*filter(decision_func, zip(*dataset))))
