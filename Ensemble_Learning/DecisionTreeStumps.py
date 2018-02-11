@@ -19,7 +19,7 @@ def generate_stumps(dataset, weights):
         weights 为输入的权值
         [w1, w2, w3...]
         返回：
-        (错误率，分类器)
+        （分类器，(错误率，分界点，分界策略,属性下标)）
     '''
 
     def each_attri_best(i, dataset):
@@ -49,7 +49,7 @@ def generate_stumps(dataset, weights):
         #     if bool(a) != bool(b): return True
         #     return False
         
-        error_rate = sum(map(lambda item:item[2]*(1 if (item[0]< point) != (item[1]==0) else 0), dataset))
+        error_rate = sum(map(lambda item:item[2]*(1 if (item[0]< point) != (item[1]==-1) else 0), dataset))
         '''
             如果该元素在临界点左侧且为正例则统计其权值，在临界点右侧且为反例的同理
         '''
@@ -77,12 +77,15 @@ def generate_stumps(dataset, weights):
         '''
         if (feature_vector[best_classifier_pack[-1]]>best_classifier_pack[1]) == (best_classifier_pack[2]):
             return 1
-        return 0
+        return -1
 
-    return weak_classifier,best_classifier_pack[0]
+    return weak_classifier, best_classifier_pack
 
 def test_stumps(dataset):
     '''
         单元测试模块，TODO
     '''
     print(generate_stumps(dataset, [1/17]*17))
+
+if __name__ == '__main__':
+    print("这只是个模块")
