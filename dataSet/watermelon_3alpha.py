@@ -1,6 +1,11 @@
 '''
 西瓜数据集3.0阿尔法
 x0 表示密度 x1表示含糖量 y = 1表示是好瓜，反之是烂瓜🍉
+wm_dataset 格式(+1 为正例， 0为反例)
+[[[x11,x12],y1],
+[[x21,x22],y2],
+]
+
 '''
 watermelon_counterexample_x = [
     [0.666, 0.091],
@@ -28,3 +33,6 @@ watermelon_posiexam_x = [
 ]
 
 watermelon_x = watermelon_posiexam_x+watermelon_counterexample_x
+
+wm_dataSet = list(zip(watermelon_x, watermelon_y))
+pass
