@@ -40,3 +40,10 @@ ps:我就是传说中的调参工程师
 准确率明显高斯核（'-s 0 -t 2 -c 1000'）比线性核（'-s 0 -t 0 -c 100'）高
 
 ![SVM](/Img/liner_Gaussian_SVM.png)
+
+## 5.集成学习
+
+### 5.1 AdaBoosting [![rawcode](/Img/code.png)](/Ensemble_Learning/AdaBoost.py)
+
+使用AdaBoosting对决策树桩进行提升生成分类器。在西瓜3.0α上的效果如图
+![AdaBoost](/Img/AdaBoosting.png)

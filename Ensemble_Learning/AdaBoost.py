@@ -8,7 +8,6 @@ import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from itertools import product
 from functools import reduce
 sys.path.append(path.dirname( path.dirname( path.abspath(__file__) ) ) )
 from dataSet.watermelon_3alpha import wm_dataSet, watermelon_counterexample_x, watermelon_posiexam_x
@@ -34,7 +33,7 @@ def main():
         主函数
     '''
     #1 初始化权值和轮次
-    Total_Turns =  11
+    Total_Turns =  8
     weights = [1/len(wm_dataSet)] * len(wm_dataSet)
 
     #2 Adaboosting
@@ -45,13 +44,6 @@ def main():
             输出packages
         '''
         if not turns:
-            def raw_classifier(x):
-                '''
-                    没有加符号函数判定，用来绘制边界
-                '''
-                result = sum(map(lambda item:item[0]*item[1](x), packages))
-                return result
-
             def final_classifier(x):
                 '''
                     最终的组合分类器
@@ -59,8 +51,7 @@ def main():
                 result = sum(map(lambda item:item[0]*item[1](x), packages))
                 return 1 if result>0 else -1
             
-
-            return packages, final_classifier, raw_classifier
+            return packages, final_classifier
         classifier, pack = generate_stumps(wm_dataSet, weights) 
         error = pack[0]
         if error==0: return
@@ -71,9 +62,8 @@ def main():
         packages.append((alpha, classifier, pack))
         return  boosting(turns-1, packages, weights)
 
-    l, Adaboosting_classifier, raw_classifier = boosting(Total_Turns, [], weights)
+    l, Adaboosting_classifier = boosting(Total_Turns, [], weights)
     print(list(map(Adaboosting_classifier, watermelon_counterexample_x+watermelon_posiexam_x)))
-
 
     #3 求各个边界
     x_edges = [0, 1]
@@ -86,12 +76,11 @@ def main():
     x_edges = sorted(list(set(x_edges)))
     y_edges = sorted(list(set(y_edges)))
     '''
-        去除重复边界
+        去除重复边界并排序
     '''
     
     ax = plot_init()
-    #4 求边界构成的最小矩形
-    # x_func = lambda 
+    #4 求边界构成的最小矩形并且填色
     y_func = lambda y_pre_edge, y_post_edge:list(map(lambda x_pre_edge, x_post_edge:([x_pre_edge, y_pre_edge], [x_post_edge-x_pre_edge, y_post_edge-y_pre_edge])  , x_edges, x_edges[1:]))
     rects = list(reduce(lambda l1, l2:l1+l2, map(y_func, y_edges, y_edges[1:])))
     for rect in rects:
@@ -104,6 +93,7 @@ def main():
             
         )
 
+    #5 绘制样本点并且绘制边界线（edges）
     pose_points, counter_points = zip(*watermelon_posiexam_x), zip(*watermelon_counterexample_x)
     ax.plot(next(pose_points), next(pose_points), 'go')
     ax.plot(next(counter_points), next(counter_points), 'bo')#样本点
