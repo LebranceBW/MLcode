@@ -45,6 +45,6 @@ ps:我就是传说中的调参工程师
 
 ### 5.1 AdaBoost [📎](/Ensemble_Learning/AdaBoost.py)
 
-使用AdaBoost对决策树桩进行提升生成分类器。在西瓜3.0α训练集上的效果如图
+使用AdaBoost对决策树桩进行提升生成分类器。在西瓜3.0α训练集上的效果(8轮）如图
 
 ![AdaBoost](/Img/AdaBoosting.png)
