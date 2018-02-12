@@ -13,7 +13,7 @@ from DecisionTreeStumps import generate_stumps
 
 def plot_init():
     '''
-    初始化matplot
+    初始化matplot，并将样本点绘制到ax中
     '''
     ax1 = plt.subplots()[1]
     ax1.set_title(u'AdaBoosting')
@@ -30,21 +30,33 @@ def main():
     '''
         主函数
     '''
-    turns = 11
-    weighs = [1/len(wm_dataSet)] * len(wm_dataSet)
-    l = []
-    for i in range(turns):
-        classifier, pack = generate_stumps(wm_dataSet, weighs) 
-        error = pack[0]
-        if error==0: break
-        alpha = 0.5 * np.log((1-error)/error) #分类器权重
-        weighs = list(map(lambda sample, weigh:weigh*np.exp(-alpha*sample[1]*classifier(sample[0])), wm_dataSet, weighs))
-        factor = sum(weighs)#归一化因子
-        weighs = list(map(lambda weigh:weigh/factor, weighs))
-        l.append((alpha, classifier, pack))
+    Total_Turns = 11
+    weights = [1/len(wm_dataSet)] * len(wm_dataSet)
 
+    def boosting(turns, packages, weights):
+        '''
+            尾递归实现boosting
+            输入turns:剩余轮次，packages([权值alpha，分类器，分类边界等参数])，weights：当前权值
+            输出packages
+        '''
+        if not turns:
+            def final_classifier(x):
+                result = sum(map(lambda item:item[0]*item[1](x), packages))
+                return 1 if result>0 else -1
+            return packages, final_classifier
+        classifier, pack = generate_stumps(wm_dataSet, weights) 
+        error = pack[0]
+        if error==0: return
+        alpha = 0.5 * np.log((1-error)/error) #分类器权重
+        weights = list(map(lambda sample, weigh:weigh*np.exp(-alpha*sample[1]*classifier(sample[0])), wm_dataSet, weights))
+        factor = sum(weights)#归一化因子
+        weights = list(map(lambda weigh:weigh/factor, weights))
+        packages.append((alpha, classifier, pack))
+        return  boosting(turns-1, packages, weights)
+
+    l, Adaboosting_classifier = boosting(Total_Turns, [], weights)
+    print(list(map(Adaboosting_classifier, watermelon_counterexample_x+watermelon_posiexam_x)))
     ax = plot_init()
-    
     for var in l:
         edge = var[2]
         if edge[-1] == 0:

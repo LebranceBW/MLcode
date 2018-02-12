@@ -5,6 +5,10 @@
 from functools import partial
 from enum import Enum
 class decide(Enum):
+    '''
+    笔记：decide.greater_to_positive 也是一个对象！不能直接用来和值进行比较
+        decide.greater_to_positive.value 返回其实际值
+    '''
     greater_to_positive = True
     lesser_to_positive = False
 
@@ -75,7 +79,7 @@ def generate_stumps(dataset, weights):
             用于返回的弱分类函数
             输入特征向量，输出标签
         '''
-        if (feature_vector[best_classifier_pack[-1]]>best_classifier_pack[1]) == (best_classifier_pack[2]):
+        if (feature_vector[best_classifier_pack[-1]]>best_classifier_pack[1]) == (best_classifier_pack[2].value):
             return 1
         return -1
 
