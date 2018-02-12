@@ -20,7 +20,7 @@ def plot_init():
     初始化matplot，并将样本点绘制到ax中
     '''
     ax1 = plt.subplots()[1]
-    ax1.set_title(u'AdaBoosting')
+    ax1.set_title(u'AdaBoost')
     ax1.set_xlabel(u"Density")
     ax1.set_ylabel(u"Sugar Rate")
     ax1.set_xlim(0, 1)
@@ -36,7 +36,7 @@ def main():
     Total_Turns =  8
     weights = [1/len(wm_dataSet)] * len(wm_dataSet)
 
-    #2 Adaboosting
+    #2 AdaBoost
     def boosting(turns, packages, weights):
         '''
             尾递归实现boosting
@@ -62,8 +62,8 @@ def main():
         packages.append((alpha, classifier, pack))
         return  boosting(turns-1, packages, weights)
 
-    l, Adaboosting_classifier = boosting(Total_Turns, [], weights)
-    print(list(map(Adaboosting_classifier, watermelon_counterexample_x+watermelon_posiexam_x)))
+    l, AdaBoost_classifier = boosting(Total_Turns, [], weights)
+    print(list(map(AdaBoost_classifier, watermelon_counterexample_x+watermelon_posiexam_x)))
 
     #3 求各个边界
     x_edges = [0, 1]
@@ -81,14 +81,14 @@ def main():
     
     ax = plot_init()
     #4 求边界构成的最小矩形并且填色
-    y_func = lambda y_pre_edge, y_post_edge:list(map(lambda x_pre_edge, x_post_edge:([x_pre_edge, y_pre_edge], [x_post_edge-x_pre_edge, y_post_edge-y_pre_edge])  , x_edges, x_edges[1:]))
+    y_func = lambda y_pre_edge, y_post_edge:(list(map(lambda x_pre_edge, x_post_edge:([x_pre_edge, y_pre_edge], [x_post_edge-x_pre_edge, y_post_edge-y_pre_edge])  , x_edges, x_edges[1:])))
     rects = list(reduce(lambda l1, l2:l1+l2, map(y_func, y_edges, y_edges[1:])))
     for rect in rects:
-        color = POSI_COLOR if Adaboosting_classifier([rect[0][0] + rect[1][0]/2, rect[0][1] + rect[1][1]/2]) == 1 else COUNTER_COLOR
+        color = POSI_COLOR if AdaBoost_classifier([rect[0][0] + rect[1][0]/2, rect[0][1] + rect[1][1]/2]) == 1 else COUNTER_COLOR
         ax.add_patch(
             patches.Rectangle(tuple(rect[0]),
              rect[1][0], 
-             rect[1][1],
+             rect[1][1], 
               color = color),
             
         )
