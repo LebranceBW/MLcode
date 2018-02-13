@@ -38,6 +38,7 @@ def wm_counter(dataset):
 def wm_picker(dataset, **kw):
     '''
         筛选器，这数据很鸡儿烦，弄个筛选器方便弄
+        输入格式：数据集， “属性名”=属性值
         label, 
     ''' 
     def decision_func(vector):

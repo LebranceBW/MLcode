@@ -7,7 +7,7 @@ import sys
 import itertools
 basedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(basedir)
-from libsvm import svmutil
+from lib.libsvm import svmutil
 from dataSet.watermelon_3alpha import watermelon_counterexample_x, watermelon_posiexam_x
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,13 +47,6 @@ def decision_gaussian(svs, coef, gamma, bias):
         return sum(map(unitfunc, coef, svs)) + np.array(bias)
     return func
 
-def progress_bar(progress_var):
-    '''
-        进度条
-    '''
-    print("\r%s %.2f%%" % ("#"*int(progress_var//4), progress_var),end="")
-    if progress_var == 100:
-        print("\nfinished")
 def main():
     '''
         主函数

@@ -8,6 +8,7 @@ wm_dataset 格式(+1 为正例， 0为反例)
 ]
 
 '''
+from functools import reduce
 watermelon_counterexample_x = [
     [0.666, 0.091],
     [0.243, 0.267],
@@ -36,4 +37,22 @@ watermelon_posiexam_x = [
 watermelon_x = watermelon_posiexam_x+watermelon_counterexample_x
 
 wm_dataSet = list(zip(watermelon_x, [1]*8 + [-1]*9))
+wm_attridict = {"Density":0, "Sugar_rate":1}
 
+def wm_picker(dataset, **kw):
+    '''
+        筛选器，这数据很鸡儿烦，弄个筛选器方便弄
+        label, 
+    ''' 
+    def decision_func(vector):
+        def func(attri):
+            if attri == 'label':
+                return vector[1] == kw[attri]
+            else:
+                if attri in wm_attridict:
+                    return vector[0][wm_attridict[attri]] in kw[attri]
+                else:
+                    raise RuntimeError("attribute is not in the dict！")
+        return reduce(lambda x, y:x and y,map(func, kw))
+    
+    return tuple(zip(*filter(decision_func, zip(*dataset))))

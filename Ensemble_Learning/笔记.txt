@@ -1,0 +1,1 @@
+scipy库可以用用root或者fsolve解方程。若是要解出重根需要函数接受numpy.array格式数据
