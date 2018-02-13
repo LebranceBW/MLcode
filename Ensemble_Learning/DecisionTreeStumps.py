@@ -4,15 +4,15 @@
 '''
 from functools import partial
 from enum import Enum
-class decide(Enum):
+class Decide(Enum):
     '''
     笔记：decide.greater_to_positive 也是一个对象！不能直接用来和值进行比较
-        decide.greater_to_positive.value 返回其实际值
+        Decide.greater_to_positive.value 返回其实际值
     '''
     greater_to_positive = True
     lesser_to_positive = False
 
-def generate_stumps(dataset, weights):
+def generate_stumps(dataset, weights=None):
     '''
         生成决策树桩，输入dataset格式为：
         [
@@ -23,8 +23,10 @@ def generate_stumps(dataset, weights):
         weights 为输入的权值
         [w1, w2, w3...]
         返回：
-        （分类器，(错误率，分界点，分界策略,属性下标)）
+        （分类器，（错误率，分界点，分界策略,属性下标））
     '''
+    if weights == None:
+        weights = [1/len(dataset)] * len(dataset)
 
     def each_attri_best(i, dataset):
         '''
@@ -35,10 +37,10 @@ def generate_stumps(dataset, weights):
         '''
             格式[xi ,y, weight]
         '''
-        sorted_dataset = sorted(itemset, key= lambda item:item[0])
-        divide_points = map(lambda x, y:float(format((x[0]+y[0])/2, ".3f")), sorted_dataset, sorted_dataset[1:])#求相邻两属性值的中间值,移位
+        sorted_dataset = sorted(itemset, key=lambda item: item[0])
+        divide_points = map(lambda x, y: float(format((x[0]+y[0])/2, ".3f")), sorted_dataset, sorted_dataset[1:])#求相邻两属性值的中间值,移位
         error_rates = map(partial(each_dividepoint, dataset=sorted_dataset), divide_points)
-        local_best = sorted(error_rates, key=lambda item:item[0])[0]
+        local_best = sorted(error_rates, key=lambda item: item[0])[0]
         return (*local_best, i)
 
     def each_dividepoint(point, dataset):
@@ -52,24 +54,21 @@ def generate_stumps(dataset, weights):
         #     #异或逻辑
         #     if bool(a) != bool(b): return True
         #     return False
-        
-        error_rate = sum(map(lambda item:item[2]*(1 if (item[0]< point) != (item[1]==-1) else 0), dataset))
+        error_rate = sum(map(lambda item: item[2]*(1 if (item[0] < point) != (item[1] == -1) else 0), dataset))
         '''
             如果该元素在临界点左侧且为正例则统计其权值，在临界点右侧且为反例的同理
         '''
         if error_rate > 0.5:#如果错误率大于0.5，那么说明分类策略反了
-            return (1-error_rate, point, decide.lesser_to_positive)
-        return (error_rate, point, decide.greater_to_positive)
-    
-    
-    zipped_dataset = list(map(lambda data, weight:(*data, weight), dataset, weights))
+            return (1-error_rate, point, Decide.lesser_to_positive)
+        return (error_rate, point, Decide.greater_to_positive)
+    zipped_dataset = list(map(lambda data, weight: (*data, weight), dataset, weights))
     # [[*data, weight] for data in dataset for weight in weights]
     '''
       把数据集和权值打包 zipped_dataset 格式  [[x11,x12],y1,w1],...
 
-    ''' 
+    '''
     attri_numbers = len(dataset[0][0])
-    best_classifier_pack = sorted(map(partial(each_attri_best, dataset=zipped_dataset), range(attri_numbers)), key=lambda item:item[0])[0]
+    best_classifier_pack = sorted(map(partial(each_attri_best, dataset=zipped_dataset), range(attri_numbers)), key=lambda item: item[0])[0]
     '''
         pack格式：(错误率，分界点，分界策略,属性下标)
     '''
@@ -79,7 +78,7 @@ def generate_stumps(dataset, weights):
             用于返回的弱分类函数
             输入特征向量，输出标签
         '''
-        if (feature_vector[best_classifier_pack[-1]]>best_classifier_pack[1]) == (best_classifier_pack[2].value):
+        if (feature_vector[best_classifier_pack[-1]] > best_classifier_pack[1]) == (best_classifier_pack[2].value):
             return 1
         return -1
 
