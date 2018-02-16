@@ -2,7 +2,7 @@
 # 参考西瓜书P69 🍉
 import sys
 from os import path
-sys.path.append(path.dirname(path.dirname( path.dirname( path.abspath(__file__) ) ) ))
+sys.path.append(path.dirname( path.dirname( path.abspath(__file__) )  ))
 from dataSet.watermelon_3alpha import watermelon_x as x
 from dataSet.watermelon_3alpha import watermelon_y as y
 import numpy as np

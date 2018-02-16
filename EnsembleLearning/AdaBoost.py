@@ -10,7 +10,7 @@ import matplotlib.patches as patches
 from functools import reduce
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from dataSet.watermelon_3alpha import wm_dataSet, watermelon_counterexample_x, watermelon_posiexam_x
-from DecisionTreeStumps import generate_stumps
+from DecisionTreeStumps_Model import generate_stumps
 
 TOTAL_TURNS = 8
 POSI_COLOR = "#DAF9CA"

@@ -7,7 +7,7 @@ from dataSet.watermelon_2 import wm_attridict, wm_dataset, wm_trainningset, wm_v
 import numpy as np
 from copy import deepcopy
 from functools import reduce, partial
-from mymodules.myclass import Tree
+from Tree_Module import Tree
 
 wm_attriset = [x for x in wm_attridict if x != '编号']
 def rate_category_func(dataset, label):
