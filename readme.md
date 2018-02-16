@@ -2,13 +2,13 @@
 
 ## 1.线性模型
 
-### 1.1对数几率回归  [📎](/LinerModel/LogisticRegression_py/main.py)
+### 1.1对数几率回归  [📎](/LinerModel/LogisticRegression.py)
 
 原题在西瓜书P69页3.3
 
 ![LogisticRe](/Img/Logistic_Regression.png)
 
-## 2.决策树 [📎](/DecisionTree_py/decisionTree.py)
+## 2.决策树 [📎](/DecisionTree/decisionTree.py)
 
 完成了两种评价方式与三种剪枝策略的离散决策树的编写，评价函数对决策树的影响有限。PS：连续值的决策树与多变量决策树有点难，脑壳疼不想写😋
 
@@ -43,7 +43,7 @@ ps:我就是传说中的调参工程师
 
 ## 5.集成学习
 
-### 5.1 AdaBoost [📎](/Ensemble_Learning/AdaBoost.py)
+### 5.1 AdaBoost [📎](/EnsembleLearning/AdaBoost.py)
 
 使用AdaBoost对决策树桩进行提升生成分类器。在西瓜3.0α训练集上的效果(8轮）如图
 
