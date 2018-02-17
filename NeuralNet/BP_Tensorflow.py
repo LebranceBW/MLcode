@@ -12,10 +12,16 @@ from itertools import compress
 
 LEARNING_RATE = 0.05
 HIDDEN_LAYER_ORDER = 8
-#修改标签
-wm_trainningset[1] = [[i] for i in wm_trainningset[1]]
-wm_validationset[1] = [[1] for i in wm_validationset[1]]
 
+'''
+修改数据格式为:
+(((x11, x12, x13), (x21, x22, x23)...), ((y1), (y2), (y3)...))
+'''
+
+wm_trainningset = map(lambda item:tuple((item[0], (item[1],))) ,wm_trainningset)
+wm_trainningset = tuple(zip(*wm_trainningset))
+wm_validationset = map(lambda item:tuple((item[0], (item[1],))) ,wm_validationset)
+wm_validationset = tuple(zip(*wm_validationset))
 
 def addlayer(prelayer, inputshape, outputshape, activate_func=None, name="layer"):
     '''

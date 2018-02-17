@@ -6,13 +6,13 @@ from os import path
 sys.path.append(path.dirname(path.dirname( path.abspath(__file__) ) ) )
 from dataSet.watermelon_3alpha import watermelon_posiexam_x as positive_x
 from dataSet.watermelon_3alpha import watermelon_counterexample_x as counter_x
-from dataSet.watermelon_3alpha import watermelon_y as y
 import numpy as np
 from functools import reduce
 import matplotlib.pyplot as plt
 
 mat_positive_x = np.matrixlib.matrix(positive_x)
 mat_counter_x = np.matrixlib.matrix(counter_x)
+y = tuple([1]*8 + [0]*9)
 def meanvetor(vector):             #计算均值向量u
     return np.mean(vector,0)
 

@@ -4,13 +4,12 @@ import sys
 from os import path
 sys.path.append(path.dirname( path.dirname( path.abspath(__file__) )  ))
 from dataSet.watermelon_3alpha import watermelon_x as x
-from dataSet.watermelon_3alpha import watermelon_y as y
 import numpy as np
 import matplotlib.pyplot as plt
 from functools import reduce
 mat_X = np.c_[np.matrixlib.matrix(x), np.ones(17)]
 mat_Y = np.matrixlib.matrix(y).T
-
+y = tuple([1]*8 + [0]*9)
 
 def XT(x): return x.T
 def Beta_multiply_X(Beta): return lambda X: Beta.T * X  # β'X
