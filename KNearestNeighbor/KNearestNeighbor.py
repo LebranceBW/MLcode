@@ -8,65 +8,11 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from dataSet.watermelon_3alpha import wm_dataSet
 from KDimensionTree import KDTree
 import numpy as np
-import heapq
+from MaxHeap import MaxHeap
 
-class MaxHeap:
+def generate_predict(trainning_set, neighbor_k=1, more_details=False):
     '''
-        封装最大值堆,方法是将权值取相反数
-        权值必须为数
-    '''
-    def __init__(self, iterable):
-        '''
-            使用列表初始化heap
-            [(<key>, content),...]
-            [(5, 'write code'), ...]
-        '''
-        array = list(map(lambda item: (-item[0], item[1]), iterable))
-        heapq.heapify(array)
-        self.__heap = array
-
-    def __len__(self):
-        '''
-            重载长度方法
-        '''
-        return len(self.__heap)
-
-    def push(self, item):
-        '''
-            item格式
-            (<key>, content)
-        '''
-        item = (-item[0], item[1])
-        heapq.heappush(self.__heap, item)
-
-    def pop(self):
-        '''
-            堆弹出
-        '''
-        if not self.__heap:
-            raise RuntimeError("Empty Heap")
-        item = heapq.heappop(self.__heap)
-        return (-item[0], item[1])
-
-    def pushpop(self, item):
-        '''
-           先入堆，再出堆
-        '''
-        item = (-item[0], item[1])
-        return heapq.heappushpop(self.__heap, item)
-
-    def top_item(self):
-        '''
-            返回堆顶数据但是不弹出
-        '''
-        return (-heapq.nlargest(1, self.__heap)[0][0], heapq.nlargest(1, self.__heap)[0][1])
-
-    def to_list(self):
-        return self.__heap
-
-def generate_predict(trainning_set, neighbor_k=1):
-    '''
-        输入训练集，最近邻树以返回判断函数
+        输入训练集，最近邻的点个数以返回判断函数
     '''
     #从数据集中训练出KD树
     kd_tree = KDTree.generate_tree(trainning_set)
@@ -93,97 +39,78 @@ def generate_predict(trainning_set, neighbor_k=1):
         elif neighbor_k > len(trainning_set)**0.5:
             print("推荐K值不超过训练集数目的开方")
         dots = trainning_set[:neighbor_k]
-        max_heap = MaxHeap(map(lambda item: (distance_measure(item[0], feature), item), dots))
+        near_dots_heap = MaxHeap(map(lambda item: (distance_measure(item[0], feature), item), dots))
 
         #2 快速查找样本点所在最小区域，并将路过的样本点更新进入最大值堆
-        def point_in_area(point, area):
+        def search(tree, near_dots_heap, stack=None):
             '''
-                判断点是否在区域内
-                point：(x1 ,y1, z1, ...)
-                area ((xmin, ymin, zmin...), (xmax, ymax, zmax))
-            '''
-            for i in enumerate(point):
-                if (i[1] < area[0][i[0]]) or (i[1] > area[1][i[0]]):
-                    return False
-            return True
-
-        def search(tree, max_heap, stack=None):
-            '''
-                输入根节点与初始化了的最大值堆，返回一个部分优化了的最大值堆与遍历栈
+                根据输入的KD树以及其划分策略，检索样本点所在区域（或者最近区域）。并将途经过的点入最大值堆并将其入栈
+                tree：KD_tree
             '''
             if tree.is_leaf:
                 '''
                     如果查找到了最接近样本点的叶节点，则开始回溯
                 '''
-                return max_heap, stack
+                return near_dots_heap, stack
             if not stack:
                 stack = []
-            distance = distance_measure(tree.dot[0], feature)
-            if distance < max_heap.top_item()[0]: #如果该点到特征点的距离小于堆顶值，那么入堆
-                max_heap.pushpop((distance, tree.dot))
-            if point_in_area(feature, tree.left_tree.area): #如果该点在左子树区域内
-                stack.append((tree, 'left'))
-                return search(tree.left_tree, max_heap)
-            stack.append((tree, 'right'))
-            return search(tree.right_tree, max_heap)
 
-        max_heap, stack = search(kd_tree, max_heap)
+            #如果该点到特征点的距离小于堆顶值，那么入堆
+            distance = distance_measure(tree.dot[0], feature)
+            if distance < near_dots_heap.max_key:
+                near_dots_heap.pushpop((distance, tree.dot))
+
+            #根据划分边界与策略，检索子树
+            if feature[tree.axis] < tree.edge:
+                stack.append(('left_tree', tree))
+                return search(tree.left_tree, near_dots_heap, stack)
+            stack.append(('right_tree', tree))
+            return search(tree.right_tree, near_dots_heap, stack)
+
+        near_dots_heap, stack = search(kd_tree, near_dots_heap)
         '''
             返回遍历栈以方便后面的回溯
         '''
 
         #3 回溯
-        
-
-        def cross_point_area(point, area, radius):
+        def review(stack, near_dots_heap):
             '''
-                是否发生交割
-                有很大BUG！
+                回溯，输入回溯栈，最大值堆
+                返回最大值堆
             '''
-            for i in enumerate(point):
-                if (i[1] < area[0][i[0]]) and (i[1]+radius > area[0][i[0]]):
-                    return True
-                if (i[1] > area[1][i[0]]) and (i[1]-radius < area[1][i[0]]):
-                    return True
-            return False
-        
-        def travel(tree, points=None):
-            '''
-                遍历一个树并返回其所有的样本点
-            '''
-            if not points:
-                points = []
-            points.append(tree.dot)   
-            if tree.is_leaf:
-                return points
-            points = travel(tree.left_tree, points)
-            points = travel(tree.right_tree, points)
-            return points
-
-        def review(stack, max_heap):
             if not stack:
-                return max_heap
-            radius = max_heap.top_item[0] #最大距离    
-            tree, label = stack.pop()
-            if label == 'left':
+                return near_dots_heap
+
+            radius = near_dots_heap.max_key #超球体的半径
+            label, tree = stack.pop()
+            if label == 'left_tree':
                 subtree = tree.right_tree
-            else:
+            elif label == 'right_tree':
                 subtree = tree.left_tree
-            if cross_point_area(feature, subtree.area, radius): #如果发生了交割
-                points = travel(subtree)
-                for each in points:
-                    distance = distance_measure(each[0], feature)
-                    if distance < max_heap.top_item[0]: #如果该点到特征点的距离小于堆顶值，那么入堆
-                        max_heap.pushpop((distance, each))
-            review(stack ,max_heap)
+
+            # 判断以feature为圆心，最大距离为半径的超球体是否与另一个子树有交割
+            if (feature[tree.axis] - radius < tree.edge) and (feature[tree.axis] + radius > tree.edge):
+                # 有的话检索另一子树中的最近点
+                near_dots_heap = search(subtree, near_dots_heap)[0]
+            return review(stack, near_dots_heap)
 
         #4 判断
-        return 1 if sum(map(lambda item: item[1][1], max_heap.to_list()))>0 else -1
-    
+        near_dots_heap = review(stack, near_dots_heap)
+        result = 1 if sum(map(lambda item: item[1][1], near_dots_heap.to_list())) > 0 else -1
+
+        if more_details:
+        # 返回更多内容
+            return result, near_dots_heap.to_list
+        return result
+
     return predict
 
 def main():
+    '''
+        主函数
+    '''
     predict_func = generate_predict(wm_dataSet, 3)
     print(list(map(lambda item: predict_func(item[0]), wm_dataSet)))
+
 if __name__ == '__main__':
     main()

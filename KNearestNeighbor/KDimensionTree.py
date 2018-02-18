@@ -7,7 +7,7 @@ import matplotlib.patches as mpatchs
 
 def plot_init():
     '''
-        初始化
+        初始化matplotlib
     '''
     ax1 = plt.subplots()[1]
     plt.title(u'KDTree')
@@ -17,23 +17,21 @@ def plot_init():
 
 class KDTree:
     '''
-        area : 超体的对角坐标（xmin， ymin， zmin） （xmax， ymax， zmax）
-        left/right tree 左右子树
-        dot：区域中的点
-        total_dimesion：数据总维度
-        is_leaf：是否是叶子节点
+        一个KDTree代表一个区域，也存储着将该区域划分掉的边界与点
     '''
 
-    def __init__(self, **kw):
+    def __init__(self, area, **kw):
         '''
             初始化KD节点
-            area， left_tree right_tree dot total_dimesion
+            area, edge, axis, left_tree right_tree dot total_dimesion
+            area: ((xmin, ymin, zmin, ...), (xmax, ymax, zmax,...))
         '''
-        self.__area = kw.get('area')
+        self.__area = area
         self.__left_tree = kw.get('left_tree')
         self.__right_tree = kw.get('right_tree')
         self.__dot = kw.get('dot')
-        self.__total_dimension = kw.get('total_dimension')
+        self.__edge = kw.get('edge')
+        self.__axis = kw.get('axis')
         self.__is_leaf = not(self.__left_tree or self.__right_tree)
     #又臭又长的属性定义
     @property
@@ -71,11 +69,32 @@ class KDTree:
         '''
         return self.__dot
 
+    @property
+    def edge(self):
+        '''
+            返回边界
+        '''
+        return self.__edge
+
+    @property
+    def axis(self):
+        '''
+            返回坐标轴
+        '''
+        return self.__axis
+
+    @property
+    def total_dimension(self):
+        '''
+            返回总维度
+        '''
+        return len(self.dot)
+
     def draw_myself(self):
         '''
             在matplotlib中绘制出KD树
         '''
-        if self.__total_dimension != 2:
+        if self.total_dimension != 2:
             print("只能绘制二维的KD树")
             return
         ax1 = plot_init()
@@ -133,19 +152,23 @@ class KDTree:
                 '''
                     划分完成后直接返回一个最小区域
                 '''
-                return KDTree(dots=points, total_dimension=total_dimension, area=area)
+                return KDTree(area=area)
             points = sorted(points, key=lambda item: item[0][axis])
-            index = len(points)//2#向下取整
-
-            diagonal_points = [list(area[0]), list(area[1])]
-            for each in diagonal_points:
-                each[axis] = points[index][0][axis]
+            index = len(points)//2  #向下取整
+            edge = points[index][0][axis]   #axis轴的划分边界
             '''
                 将超体的对角坐标映射到超平面上得到坐标点，再根据超平米上的坐标点得到子空间对角坐标
             '''
-            left_tree = build_tree(points[:index], (area[0], tuple(diagonal_points[1])), axis+1)
-            right_tree = build_tree(points[index+1: ], (tuple(diagonal_points[0]), area[1]), axis+1)
-            return KDTree(dot=points[index], area=area, left_tree=left_tree, right_tree=right_tree, total_dimension=total_dimension)
+            def replace(point, axis, val):
+                '''
+                    将point的axis坐标值换成val
+                '''
+                point = list(point)
+                point[axis] = val
+                return tuple(point)
+            left_tree = build_tree(points[:index], (area[0], replace(area[1], axis, edge)), axis+1)
+            right_tree = build_tree(points[index+1: ], (replace(area[0], axis, edge), area[1]), axis+1)
+            return KDTree(area=area, left_tree=left_tree, right_tree=right_tree, dot=points[index], edge=edge, axis=axis)
         return build_tree(dots, ((0, )*total_dimension, (1, )*total_dimension))
 
 def test_module(dots):
