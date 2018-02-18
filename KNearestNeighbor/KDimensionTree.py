@@ -90,14 +90,13 @@ class KDTree:
         '''
         return len(self.dot)
 
-    def draw_myself(self):
+    def draw_myself(self, ax1):
         '''
             在matplotlib中绘制出KD树
         '''
         if self.total_dimension != 2:
             print("只能绘制二维的KD树")
             return
-        ax1 = plot_init()
         ax1.add_patch(
             mpatchs.Rectangle((0, 0), 1, 1, edgecolor='b', facecolor='none')
         )
@@ -109,13 +108,11 @@ class KDTree:
             if not tree.is_leaf:
                 left_area_bigger = tree.left_tree.area[1]
                 right_area_smaller = tree.right_tree.area[0]
-                ax1.plot(*zip(left_area_bigger, right_area_smaller))
+                ax1.plot(*zip(left_area_bigger, right_area_smaller), '--', color="c")
+                ax1.plot(tree.dot[0][0], tree.dot[0][1], 'go' if tree.dot[1] == 1 else 'bo')
                 travel(tree.left_tree)
                 travel(tree.right_tree)
         travel(self)
-        for var in wm_dataSet:
-            ax1.plot(var[0][0], var[0][1], 'go' if var[1] == 1 else 'bo')
-        plt.show()
 
     @staticmethod
     def generate_tree(iterable):
@@ -180,7 +177,9 @@ def test_module(dots):
         测试KD树
     '''
     tree = KDTree.generate_tree(dots)
-    tree.draw_myself()
+    ax1 = plot_init()
+    tree.draw_myself(ax1)
+    plt.show()
 
 if __name__ == '__main__':
     print("运行KD树模块测试")

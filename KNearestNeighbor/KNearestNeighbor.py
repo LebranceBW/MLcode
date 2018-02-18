@@ -9,6 +9,18 @@ from dataSet.watermelon_3alpha import wm_dataSet
 from KDimensionTree import KDTree
 import numpy as np
 from MaxHeap import MaxHeap
+import warnings
+import matplotlib.pyplot as plt
+
+def plot_init():
+    '''
+        初始化matplotlib
+    '''
+    ax1 = plt.subplots()[1]
+    plt.title("KNN")
+    plt.xlabel("Density")
+    plt.ylabel("Sugar rate")
+    return ax1
 
 def generate_predict(trainning_set, neighbor_k=1, more_details=False):
     '''
@@ -34,10 +46,12 @@ def generate_predict(trainning_set, neighbor_k=1, more_details=False):
             判断函数，输入特征值输出判断结果
         '''
         #1 随便从训练集中选择K个点作为K近邻,并组成最大值堆
-        if neighbor_k > len(trainning_set):
-            raise RuntimeError("K值超过了样本点的数量！")
-        elif neighbor_k > len(trainning_set)**0.5:
-            print("推荐K值不超过训练集数目的开方")
+        if not (neighbor_k % 2):
+            warnings.warn("K值为偶数，可能会出现决策时正反样本数相等的情况")
+        if neighbor_k > len(trainning_set) or neighbor_k < 0:
+            raise RuntimeError("K值不合法")
+        if neighbor_k > len(trainning_set)**0.5:
+            warnings.warn("K值超过了样本总数的开方")
         dots = trainning_set[:neighbor_k]
         near_dots_heap = MaxHeap(map(lambda item: (distance_measure(item[0], feature), item), dots))
 
@@ -100,7 +114,7 @@ def generate_predict(trainning_set, neighbor_k=1, more_details=False):
 
         if more_details:
         # 返回更多内容
-            return result, near_dots_heap.to_list
+            return result, near_dots_heap.to_list(), kd_tree
         return result
 
     return predict
@@ -109,8 +123,16 @@ def main():
     '''
         主函数
     '''
-    predict_func = generate_predict(wm_dataSet, 3)
-    print(list(map(lambda item: predict_func(item[0]), wm_dataSet)))
+    predict_func = generate_predict(wm_dataSet, 3, True)
+    feature = np.random.rand(2)
+    predict_label, neighbors, kd_tree = predict_func(feature)
+    ax1 = plot_init()
+    kd_tree.draw_myself(ax1)
+
+    for each in neighbors:
+        ax1.plot([each[1][0][0], feature[0]], [each[1][0][1], feature[1]], color="m")
+    ax1.plot(*feature, 'go' if predict_label > 0 else 'bo')
+    plt.show()
 
 if __name__ == '__main__':
     main()

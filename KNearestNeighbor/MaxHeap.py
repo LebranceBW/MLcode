@@ -66,3 +66,4 @@ class MaxHeap:
             将堆中的数据转换为列表
         '''
         return list(map(lambda item: (-item[0], item[1]), self.__heap))
+        
