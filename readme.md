@@ -48,3 +48,9 @@ ps:我就是传说中的调参工程师
 使用AdaBoost对决策树桩进行提升生成分类器。在西瓜3.0α训练集上的效果(8轮）如图
 
 ![AdaBoost](/Img/AdaBoosting.png)
+
+## 6.K近邻算法  [📎](/EnsembleLearning/AdaBoost.py)
+
+采用KD树检索样本点
+
+![KNN](/Img/KNN.png)
