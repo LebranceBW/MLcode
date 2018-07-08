@@ -7,9 +7,9 @@ from dataSet.watermelon_3alpha import watermelon_x as x
 import numpy as np
 import matplotlib.pyplot as plt
 from functools import reduce
+y = tuple([1]*8 + [0]*9)
 mat_X = np.c_[np.matrixlib.matrix(x), np.ones(17)]
 mat_Y = np.matrixlib.matrix(y).T
-y = tuple([1]*8 + [0]*9)
 
 def XT(x): return x.T
 def Beta_multiply_X(Beta): return lambda X: Beta.T * X  # β'X
@@ -58,9 +58,9 @@ def NewTown_Method(Beta, precision=1000):
 def main():
     mat_beta = np.matrixlib.matrix([[0], [0], [0]])
     mat_beta = NewTown_Method(mat_beta)
-    print("mat_X = ", mat_X)
-    print("mat_Y = ", mat_Y)
-    print(u"β = ", mat_beta)
+    # print("mat_X = ", mat_X)
+    # print("mat_Y = ", mat_Y)
+    # print(u"β = ", mat_beta)
 
     ax = plt.subplots()[1]
     fig2 = plt.gcf()

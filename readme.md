@@ -49,7 +49,7 @@ ps:我就是传说中的调参工程师
 
 ![AdaBoost](/Img/AdaBoosting.png)
 
-## 6.K近邻算法  [📎](/EnsembleLearning/AdaBoost.py)
+## 6.K近邻算法  [📎](/KNearestNeighbor/KNearestNeighbor.py)
 
 采用KD树检索样本点
 
